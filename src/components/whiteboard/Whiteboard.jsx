@@ -1,9 +1,18 @@
+import React, { useEffect } from 'react'
+
 import Content from "../content/Content"
 import Tool from "../tool/Tool"
 import User from "../user/User"
 import "./whiteboard.scss"
 
-const Whiteboard = () => {
+import Whiteboard from "../../whiteboard/whiteboard"
+
+export default () => {
+
+  useEffect(() => {
+    const whiteboard = new Whiteboard();
+  })
+
   return (
     <div className="whiteboard">
       <Content />
@@ -12,5 +21,3 @@ const Whiteboard = () => {
     </div>
   )
 }
-
-export default Whiteboard

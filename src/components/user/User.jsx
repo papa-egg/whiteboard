@@ -1,9 +1,7 @@
 import "./user.scss";
 
-const User = () => {
+export default () => {
   return (
     <div className="user-bar">user</div>
   )
 }
-
-export default User;

@@ -1,11 +1,9 @@
 import "./content.scss";
 
-const Content = () => {
+export default () => {
   return (
     <div className="whiteboard-content">
       
     </div>
   )
 }
-
-export default Content;

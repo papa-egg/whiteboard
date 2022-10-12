@@ -1,9 +1,8 @@
 import "./tool.scss";
 
-const Tool = () => {
+export default () => {
   return (
     <div className="tool-bar">tool</div>
   )
 }
 
-export default Tool;
