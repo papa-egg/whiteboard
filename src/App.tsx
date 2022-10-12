@@ -1,13 +1,12 @@
 import React from 'react'
 import {BrowserRouter, Routes, Route} from 'react-router-dom'
-
-import Whiteboard from './components/whiteboard/Whiteboard'
+import WhiteboardConponent from './components/whiteboard/WhiteboardConponent'
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Whiteboard />} />
+        <Route path="/" element={<WhiteboardConponent />} />
       </Routes>
     </BrowserRouter>
   )
