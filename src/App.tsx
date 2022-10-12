@@ -3,7 +3,7 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom'
 
 import Whiteboard from './components/whiteboard/Whiteboard'
 
-function App() {
+const App = () => {
   return (
     <BrowserRouter>
       <Routes>
