@@ -11,7 +11,7 @@ const WhiteboardComponent = () => {
   
   const whiteboard = new Whiteboard();
 
-  // TUDO 先将公告方法绑定于window, 后续改为redux
+  // TODO 先将公告方法绑定于window, 后续改为redux
   window.whiteboard = whiteboard;
 
   return (
