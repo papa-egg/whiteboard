@@ -1,19 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 
-// class Cat{
-//   constructor(){
-//       this.name = '111';
-//       this.age = '222';
-//   }
-//   Say(){
-//       return '我的名字是' + this.name;
-//   }
-// }
-
-// var cat1 = new Cat('有鱼',2);
-// console.log(cat1.Say());//我的名字是有鱼
-
 class Whiteboard {
 
 
