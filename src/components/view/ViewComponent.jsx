@@ -7,6 +7,8 @@ const ViewComponent = () => {
   useEffect(() => {
     // 初始化白板
     window.whiteboard.init();
+
+    console.log(window.whiteboard);
   })
 
   return (

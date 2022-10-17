@@ -4,3 +4,12 @@
   height: 100vh;
   overflow: hidden;
 }
+
+#whiteboard-viewport{
+  touch-action: none;
+  cursor: inherit;
+  width: 100vw;
+  height: 100vh;
+  top: 0px;
+  left: 0px;
+}
