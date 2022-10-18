@@ -131,15 +131,8 @@ class Whiteboard {
     if (this.viewport && this.gridBgTilingSprite) {
       const {left, right, top, bottom, scaled} = this.viewport;
 
-      console.log(left, right, top, bottom, scaled);
-      console.log(this.gridBgTilingSprite);
-
-      const xx = new ObservablePoint(() => {}, null, right, bottom)
-      // const xx2 = new ObservablePoint(() => {}, null, scaled, scaled)
-
-      this.gridBgTilingSprite.tilePosition =  xx;
-      // this.gridBgTilingSprite.tileScale =  xx2;
-      
+      this.gridBgTilingSprite.tilePosition.x = -left;
+      this.gridBgTilingSprite.tilePosition.y = -top;
     }
   }
 }
