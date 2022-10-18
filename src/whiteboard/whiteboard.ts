@@ -8,15 +8,17 @@ class Whiteboard {
   public viewport?: Viewport
 
   private minScale: number = 0.1
-  private maxSclae: number = 10
+  private maxScale: number = 10
   private gridBgTilingSprite?: TilingSprite
 
   init() {
     this.initApp()
-    this.initGridBackground()
+    this.initGridBg()
     this.initViewport()
     this.listenViewportResize()
     this.listenViewportMove();
+    this.updateGridBgProfile();
+    this.updateGridBgTexture();
 
     this.foo();
   }
@@ -24,11 +26,7 @@ class Whiteboard {
   foo() {
     let rectangle: Graphics = new PIXI.Graphics()
     rectangle.beginFill(0x66ccff)
-    rectangle.drawRect(0, 0, 500, 500)
-    rectangle.beginHole();
-    rectangle.arc(250, 250, 100, 0, Math.PI * 2, false)
-  
-    rectangle.endHole();
+    rectangle.drawRect(0, 0, 100, 100)
     rectangle.endFill()
 
     if (this.viewport) {
@@ -44,6 +42,7 @@ class Whiteboard {
       width: window.innerWidth,
       height: window.innerHeight,
       backgroundColor: 0xf0f0f0,
+      antialias: true
     })
 
     ;(document.getElementById(this.viewportId) as HTMLElement).appendChild(app.view)
@@ -52,23 +51,48 @@ class Whiteboard {
   }
 
   /**
-   * 生成网格背景
+   * 初始化网格背景
    */
-  initGridBackground() {
-    let gridSprite: Graphics = new PIXI.Graphics()
-    gridSprite.lineStyle(1, 0xe7e7e7, 1)
-    gridSprite.moveTo(0, 0);
-    gridSprite.lineTo(100.5, 0);
-    gridSprite.moveTo(0, 0);
-    gridSprite.lineTo(0, 100.5);
-    gridSprite.endFill()
-
+  initGridBg() {
     if (this.app) {
-      const gridBgTexture: Texture = this.app.renderer.generateTexture(gridSprite)
-      const gridBgTilingSprite: TilingSprite = new PIXI.TilingSprite(gridBgTexture, this.app.screen.width, this.app.screen.height)
+      // 先赋予空白纹理占位
+      const gridBgTilingSprite: TilingSprite = new PIXI.TilingSprite(Texture.WHITE, 0, 0)
 
       this.app.stage.addChild(gridBgTilingSprite)
       this.gridBgTilingSprite = gridBgTilingSprite;
+    }
+  }
+
+  updateGridBgProfile() {
+    if (this.app && this.gridBgTilingSprite) {
+      this.gridBgTilingSprite.width = this.app.screen.width;
+      this.gridBgTilingSprite.height = this.app.screen.height;
+    }
+  }
+
+  /**
+   * 更新网格背景纹理
+   * NOTE: 网格背景其实是左边和上边线条进行重复平铺，如果是完整矩形，网格线宽会达到2px
+   */
+   updateGridBgTexture() {
+    if (this.viewport && this.app && this.gridBgTilingSprite) {
+      const {left, top, scaled} = this.viewport;
+      const gridSprite: Graphics = new PIXI.Graphics()
+      
+      gridSprite.lineStyle(1, 0xd9dade, 1)
+      gridSprite.moveTo(1, 1);
+      gridSprite.lineTo(100 * scaled, 1);
+      gridSprite.moveTo(1, 1);
+      gridSprite.lineTo(1, 100 * scaled);
+      gridSprite.endFill()
+  
+      const gridBgTexture: Texture = this.app.renderer.generateTexture(gridSprite);
+      
+      // 先销毁，之后赋值新纹理
+      this.gridBgTilingSprite.texture.destroy();
+      this.gridBgTilingSprite.texture = gridBgTexture;
+      this.gridBgTilingSprite.tilePosition.x = -left * scaled;
+      this.gridBgTilingSprite.tilePosition.y = -top * scaled;
     }
   }
 
@@ -86,17 +110,12 @@ class Whiteboard {
         passiveWheel: false,
       })
 
-      viewport.animate({
-        callbackOnComplete: () => {
-          console.log('arguments');
-          
-        }
-      }).drag().pinch().wheel().decelerate().clampZoom({
+      viewport.drag().pinch().wheel().decelerate().clampZoom({
         minScale: this.minScale,
-        maxScale: this.maxSclae,
+        maxScale: this.maxScale,
       })
-      this.app.stage.addChild(viewport)
 
+      this.app.stage.addChild(viewport)
       this.viewport = viewport
     }
   }
@@ -108,31 +127,20 @@ class Whiteboard {
     window.onresize = () => {
       if (this.app) {
         this.app.renderer.resize(window.innerWidth, window.innerHeight)
+        this.updateGridBgProfile();
+        this.updateGridBgTexture();
       }
     }
   }
 
   /**
-   * 监听视图变化事件：（缩放、平移）操作
+   * viewport监听事件：（缩放、平移）操作
    */
-  listenViewportMove() {
+   listenViewportMove() {
     if (this.viewport) {
       this.viewport.on('moved', () => {
-        this.resizeGirdBgTiling();
-        
+        this.updateGridBgTexture();
       })
-    }
-  }
-
-  /**
-   * 调整背景网格
-   */
-  resizeGirdBgTiling() {
-    if (this.viewport && this.gridBgTilingSprite) {
-      const {left, right, top, bottom, scaled} = this.viewport;
-
-      this.gridBgTilingSprite.tilePosition.x = -left;
-      this.gridBgTilingSprite.tilePosition.y = -top;
     }
   }
 }
