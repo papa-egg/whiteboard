@@ -7,8 +7,8 @@ class Whiteboard {
   public app?: Application
   public viewport?: Viewport
 
-  private minScale: number = 0.1
-  private maxScale: number = 10
+  private minScale: number = 0.2
+  private maxScale: number = 40
   private gridBgTilingSprite?: TilingSprite
 
   init() {
@@ -16,11 +16,11 @@ class Whiteboard {
     this.initGridBg()
     this.initViewport()
     this.listenViewportResize()
-    this.listenViewportMove();
-    this.updateGridBgProfile();
-    this.updateGridBgTexture();
+    this.listenViewportMove()
+    this.updateGridBgProfile()
+    this.updateGridBgTexture()
 
-    this.foo();
+    this.foo()
   }
 
   foo() {
@@ -42,7 +42,7 @@ class Whiteboard {
       width: window.innerWidth,
       height: window.innerHeight,
       backgroundColor: 0xf0f0f0,
-      antialias: true
+      antialias: true,
     })
 
     ;(document.getElementById(this.viewportId) as HTMLElement).appendChild(app.view)
@@ -59,14 +59,14 @@ class Whiteboard {
       const gridBgTilingSprite: TilingSprite = new PIXI.TilingSprite(Texture.WHITE, 0, 0)
 
       this.app.stage.addChild(gridBgTilingSprite)
-      this.gridBgTilingSprite = gridBgTilingSprite;
+      this.gridBgTilingSprite = gridBgTilingSprite
     }
   }
 
   updateGridBgProfile() {
     if (this.app && this.gridBgTilingSprite) {
-      this.gridBgTilingSprite.width = this.app.screen.width;
-      this.gridBgTilingSprite.height = this.app.screen.height;
+      this.gridBgTilingSprite.width = this.app.screen.width
+      this.gridBgTilingSprite.height = this.app.screen.height
     }
   }
 
@@ -74,25 +74,25 @@ class Whiteboard {
    * 更新网格背景纹理
    * NOTE: 网格背景其实是左边和上边线条进行重复平铺，如果是完整矩形，网格线宽会达到2px
    */
-   updateGridBgTexture() {
+  updateGridBgTexture() {
     if (this.viewport && this.app && this.gridBgTilingSprite) {
-      const {left, top, scaled} = this.viewport;
+      const {left, top, scaled} = this.viewport
       const gridSprite: Graphics = new PIXI.Graphics()
-      
+
       gridSprite.lineStyle(1, 0xd9dade, 1)
-      gridSprite.moveTo(1, 1);
-      gridSprite.lineTo(100 * scaled, 1);
-      gridSprite.moveTo(1, 1);
-      gridSprite.lineTo(1, 100 * scaled);
+      gridSprite.moveTo(1, 1)
+      gridSprite.lineTo(100 * scaled, 1)
+      gridSprite.moveTo(1, 1)
+      gridSprite.lineTo(1, 100 * scaled)
       gridSprite.endFill()
-  
-      const gridBgTexture: Texture = this.app.renderer.generateTexture(gridSprite);
-      
+
+      const gridBgTexture: Texture = this.app.renderer.generateTexture(gridSprite)
+
       // 先销毁，之后赋值新纹理
-      this.gridBgTilingSprite.texture.destroy();
-      this.gridBgTilingSprite.texture = gridBgTexture;
-      this.gridBgTilingSprite.tilePosition.x = -left * scaled;
-      this.gridBgTilingSprite.tilePosition.y = -top * scaled;
+      this.gridBgTilingSprite.texture.destroy()
+      this.gridBgTilingSprite.texture = gridBgTexture
+      this.gridBgTilingSprite.tilePosition.x = -left * scaled
+      this.gridBgTilingSprite.tilePosition.y = -top * scaled
     }
   }
 
@@ -123,12 +123,12 @@ class Whiteboard {
   /**
    * 当浏览器窗口发生变化，更新viewport视图
    */
-   listenViewportResize() {
+  listenViewportResize() {
     window.onresize = () => {
       if (this.app) {
         this.app.renderer.resize(window.innerWidth, window.innerHeight)
-        this.updateGridBgProfile();
-        this.updateGridBgTexture();
+        this.updateGridBgProfile()
+        this.updateGridBgTexture()
       }
     }
   }
@@ -136,10 +136,10 @@ class Whiteboard {
   /**
    * viewport监听事件：（缩放、平移）操作
    */
-   listenViewportMove() {
+  listenViewportMove() {
     if (this.viewport) {
       this.viewport.on('moved', () => {
-        this.updateGridBgTexture();
+        this.updateGridBgTexture()
       })
     }
   }
