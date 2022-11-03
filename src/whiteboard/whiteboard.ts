@@ -1,37 +1,41 @@
 import * as PIXI from 'pixi.js'
-import {Texture, Graphics, Application, TilingSprite, ObservablePoint} from 'pixi.js'
+import {Texture, Graphics, Application, TilingSprite} from 'pixi.js'
 import {Viewport} from 'pixi-viewport'
 
+import Event from './event/event'
+import Control from './control/control'
+
 class Whiteboard {
-  public viewportId: string = 'whiteboard-viewport'
+  public viewId: string = 'whiteboard-viewport'
   public app?: Application
   public viewport?: Viewport
 
-  private minScale: number = 0.2
-  private maxScale: number = 40
-  private gridBgTilingSprite?: TilingSprite
+  public minScale: number = 0.2 // 最小缩放系数
+  public maxScale: number = 40 // 最大缩放系数
+  public screenX: number = 0
+  public screenY: number = 0
+  public worldX: number = 0
+  public worldY: number = 0
+
+  private gridBgSprite?: TilingSprite // 网格背景精灵，占位，可忽略
+
+  public event?: Event // 事件层
+  public control?: Control // 控制层
 
   init() {
     this.initApp()
     this.initGridBg()
     this.initViewport()
-    this.listenViewportResize()
-    this.listenViewportMove()
-    this.updateGridBgProfile()
+    this.updateGridBgSize()
     this.updateGridBgTexture()
 
+    this.event = new Event(this)
+    this.control = new Control(this)
+
+    // TODO: 元素占位-原点调试
     this.foo()
-  }
 
-  foo() {
-    let rectangle: Graphics = new PIXI.Graphics()
-    rectangle.beginFill(0x66ccff)
-    rectangle.drawRect(0, 0, 100, 100)
-    rectangle.endFill()
-
-    if (this.viewport) {
-      this.viewport.addChild(rectangle)
-    }
+    this.viewport?.moveCenter(0, 0)
   }
 
   /**
@@ -45,55 +49,9 @@ class Whiteboard {
       antialias: true,
     })
 
-    ;(document.getElementById(this.viewportId) as HTMLElement).appendChild(app.view)
+    ;(document.getElementById(this.viewId) as HTMLElement).appendChild(app.view)
 
     this.app = app
-  }
-
-  /**
-   * 初始化网格背景
-   */
-  initGridBg() {
-    if (this.app) {
-      // 先赋予空白纹理占位
-      const gridBgTilingSprite: TilingSprite = new PIXI.TilingSprite(Texture.WHITE, 0, 0)
-
-      this.app.stage.addChild(gridBgTilingSprite)
-      this.gridBgTilingSprite = gridBgTilingSprite
-    }
-  }
-
-  updateGridBgProfile() {
-    if (this.app && this.gridBgTilingSprite) {
-      this.gridBgTilingSprite.width = this.app.screen.width
-      this.gridBgTilingSprite.height = this.app.screen.height
-    }
-  }
-
-  /**
-   * 更新网格背景纹理
-   * NOTE: 网格背景其实是左边和上边线条进行重复平铺，如果是完整矩形，网格线宽会达到2px
-   */
-  updateGridBgTexture() {
-    if (this.viewport && this.app && this.gridBgTilingSprite) {
-      const {left, top, scaled} = this.viewport
-      const gridSprite: Graphics = new PIXI.Graphics()
-
-      gridSprite.lineStyle(1, 0xd9dade, 1)
-      gridSprite.moveTo(1, 1)
-      gridSprite.lineTo(100 * scaled, 1)
-      gridSprite.moveTo(1, 1)
-      gridSprite.lineTo(1, 100 * scaled)
-      gridSprite.endFill()
-
-      const gridBgTexture: Texture = this.app.renderer.generateTexture(gridSprite)
-
-      // 先销毁，之后赋值新纹理
-      this.gridBgTilingSprite.texture.destroy()
-      this.gridBgTilingSprite.texture = gridBgTexture
-      this.gridBgTilingSprite.tilePosition.x = -left * scaled
-      this.gridBgTilingSprite.tilePosition.y = -top * scaled
-    }
   }
 
   /**
@@ -117,30 +75,83 @@ class Whiteboard {
 
       this.app.stage.addChild(viewport)
       this.viewport = viewport
+
+      this.viewport?.moveCenter(0, 0)
     }
   }
 
   /**
-   * 当浏览器窗口发生变化，更新viewport视图
+   * 初始化网格背景
    */
-  listenViewportResize() {
-    window.onresize = () => {
-      if (this.app) {
-        this.app.renderer.resize(window.innerWidth, window.innerHeight)
-        this.updateGridBgProfile()
-        this.updateGridBgTexture()
-      }
+  initGridBg() {
+    if (this.app) {
+      // 先赋予空白纹理占位
+      const gridBgSprite: TilingSprite = new PIXI.TilingSprite(Texture.WHITE, 0, 0)
+
+      this.app.stage.addChild(gridBgSprite)
+      this.gridBgSprite = gridBgSprite
     }
   }
 
   /**
-   * viewport监听事件：（缩放、平移）操作
+   * 更新网格背景大小
    */
-  listenViewportMove() {
+  updateGridBgSize() {
+    if (this.app && this.gridBgSprite) {
+      this.gridBgSprite.width = this.app.screen.width
+      this.gridBgSprite.height = this.app.screen.height
+    }
+  }
+
+  /**
+   * 更新网格背景纹理
+   * NOTE: 网格背景其实是左边和上边线条进行重复平铺，如果是完整矩形，网格线宽会达到2px
+   */
+  updateGridBgTexture() {
+    if (this.viewport && this.app && this.gridBgSprite) {
+      const {left, top, scaled} = this.viewport
+      const gridSprite: Graphics = new PIXI.Graphics()
+
+      gridSprite.lineStyle(1, 0xd9dade, 1)
+      gridSprite.moveTo(1, 1)
+      gridSprite.lineTo(100 * scaled, 1)
+      gridSprite.moveTo(1, 1)
+      gridSprite.lineTo(1, 100 * scaled)
+      gridSprite.endFill()
+
+      const gridBgTexture: Texture = this.app.renderer.generateTexture(gridSprite)
+
+      // 先销毁，之后赋值新纹理
+      this.gridBgSprite.texture.destroy()
+      this.gridBgSprite.texture = gridBgTexture
+      this.gridBgSprite.tilePosition.x = -left * scaled
+      this.gridBgSprite.tilePosition.y = -top * scaled
+    }
+  }
+
+  /**
+   * 更新鼠标当前坐标——窗口&世界坐标
+   */
+  updatePosition() {
     if (this.viewport) {
-      this.viewport.on('moved', () => {
-        this.updateGridBgTexture()
-      })
+      const screenPosition = this.app?.renderer.plugins.interaction.mouse.global
+      const worldPosition = this.viewport?.toWorld(screenPosition)
+
+      this.screenX = screenPosition.x
+      this.screenY = screenPosition.y
+      this.worldX = worldPosition?.x
+      this.worldY = worldPosition?.y
+    }
+  }
+
+  foo() {
+    let rectangle: Graphics = new PIXI.Graphics()
+    rectangle.beginFill(0x66ccff)
+    rectangle.drawRect(0, 0, 100, 100)
+    rectangle.endFill()
+
+    if (this.viewport) {
+      this.viewport.addChild(rectangle)
     }
   }
 }

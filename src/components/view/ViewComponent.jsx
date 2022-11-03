@@ -1,14 +1,12 @@
-import React, { useEffect } from 'react'
-import "./viewComponent.scss";
+import React, {useEffect} from 'react'
+import './viewComponent.scss'
 
 const ViewComponent = () => {
-
-
   useEffect(() => {
     // 初始化白板
-    window.whiteboard.init();
+    window.WD.init()
 
-    console.log(window.whiteboard);
+    console.log(window.WD)
   })
 
   return (
@@ -18,4 +16,4 @@ const ViewComponent = () => {
   )
 }
 
-export default ViewComponent;
+export default ViewComponent
