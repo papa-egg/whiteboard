@@ -1,14 +1,17 @@
 import * as PIXI from 'pixi.js'
-import {Texture, Graphics, Application, TilingSprite} from 'pixi.js'
+import {Texture, Graphics, Application, TilingSprite, Container} from 'pixi.js'
 import {Viewport} from 'pixi-viewport'
 
 import Event from './event/event'
 import Control from './control/control'
+import Box from './box/box'
+import Tool from './tool/tool'
 
 class Whiteboard {
   public viewId: string = 'whiteboard-viewport'
   public app?: Application
   public viewport?: Viewport
+  public boxs?: any[]
 
   public minScale: number = 0.2 // 最小缩放系数
   public maxScale: number = 40 // 最大缩放系数
@@ -21,6 +24,7 @@ class Whiteboard {
 
   public event?: Event // 事件层
   public control?: Control // 控制层
+  public tool?: Tool // 工具栏
 
   init() {
     this.initApp()
@@ -31,11 +35,42 @@ class Whiteboard {
 
     this.event = new Event(this)
     this.control = new Control(this)
-
-    // TODO: 元素占位-原点调试
-    this.foo()
+    this.tool = new Tool(this)
 
     this.viewport?.moveCenter(0, 0)
+
+    this.drawElements()
+  }
+
+  drawElements() {
+    const elementInfoList = [
+      {
+        id: '111',
+        type: 'note',
+        layer: 0,
+        locked: false,
+        widget: {
+          x: 50,
+          y: 50,
+          w: 100,
+          h: 100,
+          a: 0,
+          s: 1,
+          noteColor: 0xff00ff,
+        },
+      },
+    ]
+
+    this.boxs = elementInfoList.map((elementInfo: any) => {
+      const element = new Box(elementInfo)
+
+      element.createWidget(elementInfo.widget)
+      this.viewport?.addChild(element.widget.sprite)
+
+      return element
+    })
+
+    console.log(this.boxs)
   }
 
   /**
@@ -68,10 +103,17 @@ class Whiteboard {
         passiveWheel: false,
       })
 
-      viewport.drag().pinch().wheel().decelerate().clampZoom({
-        minScale: this.minScale,
-        maxScale: this.maxScale,
-      })
+      viewport
+        .drag({
+          mouseButtons: 'middle-right',
+        })
+        .pinch()
+        .wheel()
+        .decelerate()
+        .clampZoom({
+          minScale: this.minScale,
+          maxScale: this.maxScale,
+        })
 
       this.app.stage.addChild(viewport)
       this.viewport = viewport
@@ -139,19 +181,8 @@ class Whiteboard {
 
       this.screenX = screenPosition.x
       this.screenY = screenPosition.y
-      this.worldX = worldPosition?.x
-      this.worldY = worldPosition?.y
-    }
-  }
-
-  foo() {
-    let rectangle: Graphics = new PIXI.Graphics()
-    rectangle.beginFill(0x66ccff)
-    rectangle.drawRect(0, 0, 100, 100)
-    rectangle.endFill()
-
-    if (this.viewport) {
-      this.viewport.addChild(rectangle)
+      this.worldX = worldPosition?.x || 0
+      this.worldY = worldPosition?.y || 0
     }
   }
 }

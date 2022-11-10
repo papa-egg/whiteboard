@@ -17,35 +17,65 @@ class Event {
 
     this.listenViewportDown()
     this.listenViewportUp()
+    this.listenViewportClick()
     this.listenViewportMove()
     this.listenWindowResize()
     this.listenViewportWheel()
   }
 
   /**
-   * 画布——按下
+   * 指针——按下
    */
   listenViewportDown() {
-    this.viewport?.on('pointerdown', () => {
-      console.log('down')
+    this.viewport?.on('pointerdown', (e: any) => {
+      const which = e.data.originalEvent.which
+
+      if (this.WD) {
+        const worldX = this.WD?.worldX
+        const worldY = this.WD?.worldY
+
+        // 鼠标左键
+        if (which == 1) {
+          this.WD?.control?.pointerdown(worldX, worldY)
+        }
+
+        if (this.WD?.control?.selection) {
+          this.WD?.control?.selection.range?.pointerdown()
+        }
+      }
     })
   }
 
   /**
-   * 画布——抬起
+   * 指针——抬起
    */
   listenViewportUp() {
     this.viewport?.on('pointerup', (e: any) => {
-      // console.log('up', e.data.originalEvent.which)
+      if (this.WD?.control?.selection) {
+        this.WD?.control?.selection.range?.pointerup()
+      }
     })
   }
 
   /**
-   * 画布——移动中
+   * 指针——点击
+   */
+  listenViewportClick() {
+    this.viewport?.on('clicked', () => {
+      // console.log('click')
+    })
+  }
+
+  /**
+   * 指针——移动中
    */
   listenViewportMove() {
     this.viewport?.on('pointermove', () => {
       this.WD?.updatePosition()
+
+      if (this.WD?.control?.selection) {
+        this.WD?.control?.selection.range?.pointermove()
+      }
     })
   }
 
@@ -60,6 +90,11 @@ class Event {
         this.viewport?.resize()
         this.WD?.updateGridBgSize()
         this.WD?.updateGridBgTexture()
+
+        // range框响应窗口变化
+        if (this.WD?.control?.selection) {
+          this.WD?.control?.selection.range?.draw()
+        }
       }
     }
   }
@@ -72,6 +107,11 @@ class Event {
       this.viewport.on('moved', () => {
         this.WD?.updatePosition()
         this.WD?.updateGridBgTexture()
+
+        // range框响应窗口变化
+        if (this.WD?.control?.selection) {
+          this.WD?.control?.selection.range?.draw()
+        }
       })
     }
   }

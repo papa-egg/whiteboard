@@ -1,7 +1,35 @@
 .tool-bar{
-  position: absolute;
+  position: fixed;
   left: 8px;
   top: 50%;
   transform: translate(0, -50%);
-  background: green;
+  width: 46px;
+  border: 1px solid #dfdfde;
+  border-radius: 8px;
+  min-height: 100px;
+  background: #ffffff;
+}
+
+.tool-list li .iconfont{
+  height: 44px;
+  font-size: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-list li.selected i{
+  color: #4dabcf;
+}
+
+.icon-note{
+  font-size: 20px !important;
+}
+
+.icon-checkbox{
+  font-size: 20px !important;
+}
+
+.icon-frame{
+  font-size: 20px !important;
 }

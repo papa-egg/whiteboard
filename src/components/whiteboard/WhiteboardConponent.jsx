@@ -1,5 +1,3 @@
-import React, {useEffect} from 'react'
-
 import ViewComponent from '../view/ViewComponent'
 import ToolComponent from '../tool/ToolComponent'
 import UserComponnet from '../user/UserComponnet'
