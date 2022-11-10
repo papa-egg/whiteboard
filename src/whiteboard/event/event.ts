@@ -36,11 +36,15 @@ class Event {
 
         // 鼠标左键
         if (which == 1) {
-          this.WD?.control?.pointerdown(worldX, worldY)
-        }
+          if (this.WD?.control?.selection) {
+            this.WD?.control?.selection.range?.pointerdown()
 
-        if (this.WD?.control?.selection) {
-          this.WD?.control?.selection.range?.pointerdown()
+            if (this.WD?.control?.selection.range?.rangeStatus) {
+              return
+            }
+          }
+
+          this.WD?.control?.pointerdown(worldX, worldY)
         }
       }
     })

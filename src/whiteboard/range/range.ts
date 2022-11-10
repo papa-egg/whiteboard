@@ -2,6 +2,7 @@ import {Container, Graphics} from 'pixi.js'
 import Box from '../box/box'
 import getBoundPoints from '../utils/get-bound-points'
 import getTransformRangeData from '../utils/get-transform-range-data'
+import isPointInPolygon from '../utils/isPointInPolygon'
 
 // const WD = (window as any).WD
 
@@ -78,7 +79,64 @@ class Range {
   }
 
   pointerdown() {
-    console.log(1111)
+    const WD = (window as any).WD
+    const {worldX, worldY} = WD
+    const {x, y, w, h, a, s} = this.toScreenRangeData(this.rangeData)
+    const currentPoint = WD.viewport.toScreen({x: worldX, y: worldY})
+    const auxPoints = [
+      {
+        x: x - w / 2,
+        y: y - h / 2,
+      },
+      {
+        x: x + w / 2,
+        y: y - h / 2,
+      },
+      {
+        x: x + w / 2,
+        y: y + h / 2,
+      },
+      {
+        x: x - w / 2,
+        y: y + h / 2,
+      },
+    ]
+    let selectFlag: boolean = false
+
+    // 是否在辅助点上
+    auxPoints.forEach((point: IPoint, index: number) => {
+      const dx = Math.abs(currentPoint.x - point.x)
+      const dy = Math.abs(currentPoint.y - point.y)
+
+      if (Math.sqrt(dx * dx + dy * dy) <= 5) {
+        selectFlag = true
+
+        this.rangeStatus = 'drag'
+        this.pointerIndex = index + 1
+        this.startPoint = {
+          x: worldX,
+          y: worldY,
+        }
+
+        this.startRangeData = Object.assign({}, this.rangeData)
+      }
+    })
+
+    // 是否在辅助线内
+    if (!selectFlag) {
+      const boundPoints = getBoundPoints(x, y, w, h, a)
+      if (isPointInPolygon(currentPoint, boundPoints)) {
+        selectFlag = true
+
+        this.rangeStatus = 'move'
+        this.startPoint = {
+          x: worldX,
+          y: worldY,
+        }
+
+        this.startRangeData = Object.assign({}, this.rangeData)
+      }
+    }
   }
 
   pointerup() {
@@ -94,10 +152,35 @@ class Range {
       })
     }
 
+    this.show()
     this.rangeStatus = ''
   }
 
-  pointermove() {}
+  pointermove() {
+    if (!this.rangeStatus) return
+
+    const WD = (window as any).WD
+    const {worldX, worldY} = WD
+    const endPoint: IPoint = {x: worldX, y: worldY}
+    const endRangeData = getTransformRangeData({
+      rangeStatus: this.rangeStatus,
+      startPoint: this.startPoint,
+      endPoint: endPoint,
+      startRangeData: this.startRangeData,
+      pointerIndex: this.pointerIndex,
+      dragType: this.adapter.dragType,
+    })
+
+    this.transform({
+      rangeStatus: this.rangeStatus,
+      rangeData: endRangeData,
+    })
+
+    // 元素变换过程中隐藏range框
+    if (this.rangeStatus) {
+      this.hide()
+    }
+  }
 
   show() {
     this.rangeSprite.alpha = 1
@@ -122,168 +205,12 @@ class Range {
   }
 
   /**
-   * 监听控制元素
-   */
-  listen() {
-    this.auxLineSprite.on('mousedown', (e: any) => {
-      console.log('down')
-
-      const WD = (window as any).WD
-      const {worldX, worldY} = WD
-
-      this.rangeStatus = 'move'
-
-      this.startPoint.x = worldX
-      this.startPoint.y = worldY
-
-      this.startRangeData = Object.assign({}, this.rangeData)
-    })
-
-    this.auxLineSprite.on('pointermove', (e: any) => {
-      console.log('move')
-
-      if (!this.rangeStatus) return
-
-      const WD = (window as any).WD
-      const {worldX, worldY} = WD
-      const endPoint: IPoint = {x: worldX, y: worldY}
-      const endRangeData = getTransformRangeData({
-        rangeStatus: this.rangeStatus,
-        startPoint: this.startPoint,
-        endPoint: endPoint,
-        startRangeData: this.startRangeData,
-        pointerIndex: this.pointerIndex,
-        dragType: this.adapter.dragType,
-      })
-
-      this.transform({
-        rangeStatus: this.rangeStatus,
-        rangeData: endRangeData,
-      })
-
-      // 元素变换过程中隐藏range框
-      if (this.rangeStatus) {
-        // this.hide()
-      }
-    })
-
-    this.auxLineSprite.on('pointerup', (e: any) => {
-      this.show()
-
-      if (this.rangeStatus === 'move') {
-        this.transform({
-          rangeStatus: 'moveEnd',
-        })
-      }
-
-      console.log(this.rangeStatus)
-
-      if (this.rangeStatus === 'drag') {
-        this.transform({
-          rangeStatus: 'dragEnd',
-        })
-      }
-
-      this.rangeStatus = ''
-    })
-
-    this.auxLineSprite.on('pointerupoutside', (e: any) => {
-      this.show()
-
-      if (this.rangeStatus === 'move') {
-        this.transform({
-          rangeStatus: 'moveEnd',
-        })
-      }
-
-      console.log(this.rangeStatus)
-
-      if (this.rangeStatus === 'drag') {
-        this.transform({
-          rangeStatus: 'dragEnd',
-        })
-      }
-
-      this.rangeStatus = ''
-    })
-
-    /**************************************** auxPoint ********************************************/
-
-    const auxPointDown = (e: any, pointerIndex: number) => {
-      console.log('down', pointerIndex)
-
-      this.pointerIndex = pointerIndex
-
-      const WD = (window as any).WD
-      const {worldX, worldY} = WD
-
-      this.rangeStatus = 'drag'
-
-      this.startPoint.x = worldX
-      this.startPoint.y = worldY
-
-      this.startRangeData = Object.assign({}, this.rangeData)
-    }
-
-    const auxPointUp = (e: any, pointerIndex: number) => {
-      if (this.rangeStatus === 'drag') {
-        this.transform({
-          rangeStatus: 'dragEnd',
-        })
-      }
-      this.rangeStatus = ''
-    }
-
-    this.auxPointLeftTopSprite.on('pointerdown', (e: any) => {
-      auxPointDown(e, 1)
-    })
-
-    this.auxPointLeftTopSprite.on('pointerup', (e: any) => {
-      auxPointUp(e, 1)
-    })
-
-    this.auxPointRightTopSprite.on('pointerdown', (e: any) => {
-      auxPointDown(e, 2)
-    })
-
-    this.auxPointRightTopSprite.on('pointerup', (e: any) => {
-      auxPointUp(e, 2)
-    })
-
-    this.auxPointRightBottomSprite.on('pointerdown', (e: any) => {
-      auxPointDown(e, 3)
-    })
-
-    this.auxPointRightBottomSprite.on('pointerup', (e: any) => {
-      auxPointUp(e, 3)
-    })
-
-    this.auxPointRightBottomSprite.on('pointerup', (e: any) => {
-      auxPointUp(e, 3)
-    })
-
-    this.auxPointRightBottomSprite.on('pointerup', (e: any) => {
-      auxPointUp(e, 3)
-    })
-
-    this.auxPointLeftBottomSprite.on('pointerupoutside', (e: any) => {
-      auxPointDown(e, 4)
-    })
-
-    this.auxPointLeftBottomSprite.on('pointerup', (e: any) => {
-      auxPointUp(e, 4)
-    })
-  }
-
-  /**
    * 绘图元素创建、占位
    */
   create() {
     // 辅助线
     this.rangeSprite = new Container()
-    // this.rangeSprite.interactive = true
     this.auxLineSprite = new Graphics()
-    // this.auxLineSprite.interactive = true
     this.rangeSprite.addChild(this.auxLineSprite)
 
     // 辅助点
@@ -291,11 +218,6 @@ class Range {
     this.auxPointRightTopSprite = this.createPointSprite()
     this.auxPointRightBottomSprite = this.createPointSprite()
     this.auxPointLeftBottomSprite = this.createPointSprite()
-    // 只有对精灵interactive赋值为true,才能进行事件绑定监听
-    // this.auxPointLeftTopSprite.interactive = true
-    // this.auxPointRightTopSprite.interactive = true
-    // this.auxPointRightBottomSprite.interactive = true
-    // this.auxPointLeftBottomSprite.interactive = true
 
     this.rangeSprite.addChild(this.auxPointLeftBottomSprite)
     this.rangeSprite.addChild(this.auxPointLeftTopSprite)
@@ -315,7 +237,6 @@ class Range {
     pointSprite.lineStyle(1, 0x8cb8c4, 1)
     pointSprite.beginFill(0xffffff)
     pointSprite.drawCircle(0, 0, 5)
-    // pointSprite.drawRect(0, 0, 10, 10)
     pointSprite.endFill()
 
     pointSprite.pivot.x = 0

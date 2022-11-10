@@ -87,9 +87,7 @@ class Control {
     const {x, y, w, h, a} = element.widget
     const boundPoints: IPoint[] = getBoundPoints(x, y, w, h, a)
 
-    const flag: boolean = isPointInPolygon(point, boundPoints)
-
-    return flag
+    return isPointInPolygon(point, boundPoints)
   }
 }
 
