@@ -23,6 +23,30 @@ interface ITransformOptions {
   dragType?: string
 }
 
+const getAuxPoint = (pointerIndex: number, rangeData: IRangeData) => {
+  const {x, y, w, h, a, s} = rangeData
+  const rangePoints: IPoint[] = [
+    {
+      x: x - w / 2,
+      y: y - h / 2,
+    },
+    {
+      x: x + w / 2,
+      y: y - h / 2,
+    },
+    {
+      x: x + w / 2,
+      y: y + h / 2,
+    },
+    {
+      x: x - w / 2,
+      y: y + h / 2,
+    },
+  ]
+
+  return rangePoints[pointerIndex - 1]
+}
+
 /**
  * 获取对角点
  */
@@ -74,8 +98,6 @@ const getOppositePoint = (pointerIndex: number, rangeData: IRangeData) => {
  * 变换计算
  */
 const getTransformRangeData = (transformOptions: ITransformOptions) => {
-  console.log(transformOptions)
-
   const {rangeStatus, startPoint, endPoint, startRangeData, pointerIndex, dragType} = transformOptions
   const endRangeData = Object.assign({}, startRangeData)
   const {x, y, w, h, a, s} = startRangeData
@@ -83,9 +105,6 @@ const getTransformRangeData = (transformOptions: ITransformOptions) => {
   // 宽高比
   const ratioX = w / (w + h)
   const ratioY = 1 - ratioX
-
-  console.log(ratioX)
-  console.log(ratioY)
 
   // 平移
   if (rangeStatus === 'move') {
@@ -100,33 +119,29 @@ const getTransformRangeData = (transformOptions: ITransformOptions) => {
     // 等比例拉伸
     if (dragType === 'scale') {
       // 偏移量总和
+      const auxPoint = getAuxPoint(pointerIndex, startRangeData)
       let sumOffset: number = 0
       let dragPoint: IPoint = {x: 0, y: 0}
 
       if (pointerIndex === 1 || pointerIndex === 3) {
         sumOffset = endPoint.x - startPoint.x + (endPoint.y - startPoint.y)
         dragPoint = {
-          x: startPoint.x + sumOffset * 0.5,
-          y: startPoint.y + sumOffset * 0.5,
+          x: auxPoint.x + sumOffset * ratioX,
+          y: auxPoint.y + sumOffset * ratioY,
         }
       } else {
         sumOffset = endPoint.x - startPoint.x - (endPoint.y - startPoint.y)
         dragPoint = {
-          x: startPoint.x + sumOffset * 0.5,
-          y: startPoint.y - sumOffset * 0.5,
+          x: auxPoint.x + sumOffset * ratioX,
+          y: auxPoint.y - sumOffset * ratioY,
         }
       }
 
-      console.log('dragPoint', dragPoint)
-
       const {x, y, w, h} = getBoundByPoints([dragPoint, oppositePoint])
-
       endRangeData.x = x
       endRangeData.y = y
       endRangeData.w = w
       endRangeData.h = h
-
-      console.log(endRangeData)
     }
   }
 

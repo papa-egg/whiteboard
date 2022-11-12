@@ -3,7 +3,7 @@ import {Tooltip} from 'antd'
 import './toolComponent.scss'
 
 const ToolComponent = () => {
-  const [toolType, setToolType] = useState('pointer')
+  const [toolType, setToolType] = useState('')
 
   const toolSelect = (toolType) => {
     setToolType(toolType)
@@ -53,7 +53,7 @@ const ToolComponent = () => {
           className={toolType === 'circle' ? 'selected' : ''}
         >
           <Tooltip placement="right" title="圆形">
-            <i className="iconfont icon-24gl-circle"></i>
+            <i className="iconfont icon-yuanxingweixuanzhong"></i>
           </Tooltip>
         </li>
         <li
@@ -63,7 +63,7 @@ const ToolComponent = () => {
           className={toolType === 'rectangle' ? 'selected' : ''}
         >
           <Tooltip placement="right" title="矩型">
-            <i className="iconfont icon-24gl-square"></i>
+            <i className="iconfont icon-checkbox-weixuan"></i>
           </Tooltip>
         </li>
         <li
@@ -93,7 +93,7 @@ const ToolComponent = () => {
           className={toolType === 'line' ? 'selected' : ''}
         >
           <Tooltip placement="right" title="线段">
-            <i className="iconfont icon-zhixian"></i>
+            <i className="iconfont icon-xianduan"></i>
           </Tooltip>
         </li>
         <li
@@ -113,7 +113,7 @@ const ToolComponent = () => {
           className={toolType === 'picture' ? 'selected' : ''}
         >
           <Tooltip placement="right" title="上传图片">
-            <i className="iconfont icon-shangchuan"></i>
+            <i className="iconfont icon-shangchuandaochu"></i>
           </Tooltip>
         </li>
       </ul>

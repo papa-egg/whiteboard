@@ -38,11 +38,8 @@ class Selection {
 
   transform(options: any) {
     if (!this.rangeData || !this.range) return
-
     const {rangeStatus, dx, dy, rangeData} = options
     const startRangeData = this.rangeData
-
-    console.log(rangeStatus)
 
     switch (rangeStatus) {
       case 'move': {
@@ -73,10 +70,7 @@ class Selection {
 
         if (this.adapter.dragType === 'scale') {
           // 等比例拖拽
-
           const scaled = rangeData.w / startRangeData.w
-
-          console.log('rangeData', rangeData)
 
           this.boxs.forEach((box: Box) => {
             box.widget.drag({

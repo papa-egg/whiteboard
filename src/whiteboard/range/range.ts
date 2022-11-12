@@ -1,10 +1,13 @@
-import {Container, Graphics} from 'pixi.js'
+import {Container, Graphics, Sprite, utils, Texture} from 'pixi.js'
 import Box from '../box/box'
 import getBoundPoints from '../utils/get-bound-points'
 import getTransformRangeData from '../utils/get-transform-range-data'
 import isPointInPolygon from '../utils/isPointInPolygon'
-
-// const WD = (window as any).WD
+import getWorldPointerPoint from '../utils/get-world-pointer-point'
+import getScreenPointerPoint from '../utils/get-screen-pointer-point'
+import getViewportScaled from '../utils/get-viewport-scaled'
+import getViewport from '../utils/get-viewport'
+import getWhiteboard from '../utils/get-whiteboard'
 
 interface IPoint {
   x: number
@@ -37,13 +40,13 @@ class Range {
   }
 
   public adapter: any
-
   public rangeSprite: any
   public auxLineSprite: any
   public auxPointLeftTopSprite: any // 左上
   public auxPointRightTopSprite: any // 右上
   public auxPointRightBottomSprite: any // 右下
   public auxPointLeftBottomSprite: any // 左下
+  public rotateSprite: any // 旋转按钮
   public pointerIndex?: number
 
   startPoint: IPoint = {x: 0, y: 0}
@@ -55,6 +58,7 @@ class Range {
     a: 0,
     s: 1,
   }
+
   rangeStatus: string = ''
 
   constructor(rangeOptions: any) {
@@ -67,22 +71,20 @@ class Range {
     // 绘制元素外框和辅助点、辅助线
     this.create()
     this.draw()
-    // this.listen()
 
     // 初始化为平移
-    const WD = (window as any).WD
-    const {worldX, worldY} = WD
+    const worldPoint: IPoint = getWorldPointerPoint()
     this.rangeStatus = 'move'
-    this.startPoint.x = worldX
-    this.startPoint.y = worldY
+    this.startPoint.x = worldPoint.x
+    this.startPoint.y = worldPoint.y
     this.startRangeData = Object.assign({}, this.rangeData)
   }
 
   pointerdown() {
-    const WD = (window as any).WD
-    const {worldX, worldY} = WD
+    // NOTE：换算成窗口坐标进行计算，判断鼠标当前选中range哪个操作元素
+    const worldPoint: IPoint = getWorldPointerPoint()
+    const screenPoint = getScreenPointerPoint()
     const {x, y, w, h, a, s} = this.toScreenRangeData(this.rangeData)
-    const currentPoint = WD.viewport.toScreen({x: worldX, y: worldY})
     const auxPoints = [
       {
         x: x - w / 2,
@@ -105,35 +107,27 @@ class Range {
 
     // 是否在辅助点上
     auxPoints.forEach((point: IPoint, index: number) => {
-      const dx = Math.abs(currentPoint.x - point.x)
-      const dy = Math.abs(currentPoint.y - point.y)
+      const dx = Math.abs(screenPoint.x - point.x)
+      const dy = Math.abs(screenPoint.y - point.y)
 
       if (Math.sqrt(dx * dx + dy * dy) <= 5) {
         selectFlag = true
 
         this.rangeStatus = 'drag'
         this.pointerIndex = index + 1
-        this.startPoint = {
-          x: worldX,
-          y: worldY,
-        }
-
+        this.startPoint = worldPoint
         this.startRangeData = Object.assign({}, this.rangeData)
       }
     })
 
-    // 是否在辅助线内
+    // 是否在辅助线框内
     if (!selectFlag) {
       const boundPoints = getBoundPoints(x, y, w, h, a)
-      if (isPointInPolygon(currentPoint, boundPoints)) {
+      if (isPointInPolygon(screenPoint, boundPoints)) {
         selectFlag = true
 
         this.rangeStatus = 'move'
-        this.startPoint = {
-          x: worldX,
-          y: worldY,
-        }
-
+        this.startPoint = worldPoint
         this.startRangeData = Object.assign({}, this.rangeData)
       }
     }
@@ -152,16 +146,14 @@ class Range {
       })
     }
 
-    this.show()
+    this.setRangeVisible(true)
     this.rangeStatus = ''
   }
 
   pointermove() {
     if (!this.rangeStatus) return
 
-    const WD = (window as any).WD
-    const {worldX, worldY} = WD
-    const endPoint: IPoint = {x: worldX, y: worldY}
+    const endPoint: IPoint = getWorldPointerPoint()
     const endRangeData = getTransformRangeData({
       rangeStatus: this.rangeStatus,
       startPoint: this.startPoint,
@@ -178,16 +170,16 @@ class Range {
 
     // 元素变换过程中隐藏range框
     if (this.rangeStatus) {
-      this.hide()
+      this.setRangeVisible(false)
     }
   }
 
-  show() {
-    this.rangeSprite.alpha = 1
-  }
-
-  hide() {
-    this.rangeSprite.alpha = 0
+  setRangeVisible(visible: boolean) {
+    if (visible) {
+      this.rangeSprite.alpha = 1
+    } else {
+      this.rangeSprite.alpha = 0
+    }
   }
 
   update(rangeData: IRangeData) {
@@ -218,14 +210,28 @@ class Range {
     this.auxPointRightTopSprite = this.createPointSprite()
     this.auxPointRightBottomSprite = this.createPointSprite()
     this.auxPointLeftBottomSprite = this.createPointSprite()
-
     this.rangeSprite.addChild(this.auxPointLeftBottomSprite)
     this.rangeSprite.addChild(this.auxPointLeftTopSprite)
     this.rangeSprite.addChild(this.auxPointRightBottomSprite)
     this.rangeSprite.addChild(this.auxPointRightTopSprite)
 
-    const WD = (window as any).WD
-    WD.app.stage.addChild(this.rangeSprite)
+    // 旋转图标
+    this.rotateSprite = new Container()
+    const rotateBgSprite = new Graphics()
+    rotateBgSprite.beginFill(0xffffff)
+    rotateBgSprite.drawCircle(8, 8, 10)
+    rotateBgSprite.endFill()
+    this.rotateSprite.addChild(rotateBgSprite)
+    const rotateTexture = Texture.from('./rotate.png')
+    const rotateImagesprite = new Sprite(rotateTexture)
+    rotateImagesprite.width = 16
+    rotateImagesprite.height = 16
+    this.rotateSprite.addChild(rotateImagesprite)
+    this.rangeSprite.addChild(this.rotateSprite)
+
+    // NOTE: 不随viewport进行缩放，所以渲染到stage画布
+    const whiteboard = getWhiteboard()
+    whiteboard.app.stage.addChild(this.rangeSprite)
   }
 
   /**
@@ -249,7 +255,6 @@ class Range {
    * 开始绘制
    */
   draw() {
-    const WD = (window as any).WD
     const {x, y, w, h, a, s} = this.toScreenRangeData(this.rangeData)
 
     // 辅助线
@@ -264,6 +269,9 @@ class Range {
     this.auxPointRightBottomSprite.position.set(x + w / 2, y + h / 2)
     this.auxPointLeftBottomSprite.position.set(x - w / 2, y + h / 2)
 
+    // 旋转点
+    this.rotateSprite.position.set(x - 10, y + h / 2 + 10)
+
     this.rangeSprite.angle = a
   }
 
@@ -272,22 +280,21 @@ class Range {
   }
 
   /**
-   * 转化为屏幕坐标
+   * rangeData转化为屏幕坐标
    */
   toScreenRangeData(rangeData: IRangeData): IRangeData {
-    const WD = (window as any).WD
     const {x, y, w, h, a, s} = rangeData
-
-    const screenPoint = WD.viewport.toScreen(x, y)
-    const scaled = WD.viewport.scaled
+    const viewport = getViewport()
+    const sPoint = viewport.toScreen(x, y)
+    const scaled = getViewportScaled()
 
     return {
-      x: screenPoint.x,
-      y: screenPoint.y,
+      x: sPoint.x,
+      y: sPoint.y,
       w: w * scaled,
       h: h * scaled,
       a: a,
-      s: a,
+      s: s,
     }
   }
 }

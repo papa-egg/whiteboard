@@ -1,50 +1,48 @@
-import {Viewport} from 'pixi-viewport'
-import {Application} from 'pixi.js'
-import Whiteboard from '../whiteboard'
+import getWhiteboard from '../utils/get-whiteboard'
 
 /**
  * 事件层，所有事件都在当前进行监听触发
  */
 class Event {
-  private WD?: Whiteboard
-  private app?: Application
-  private viewport?: Viewport
+  whiteboard: any
+  viewport: any
+  app: any
 
-  constructor(whiteboard: Whiteboard) {
-    this.WD = whiteboard
-    this.app = this.WD.app
-    this.viewport = this.WD.viewport
+  constructor() {
+    this.whiteboard = getWhiteboard()
+    this.viewport = this.whiteboard.viewport
+    this.app = this.whiteboard.app
 
-    this.listenViewportDown()
-    this.listenViewportUp()
-    this.listenViewportClick()
-    this.listenViewportMove()
-    this.listenWindowResize()
-    this.listenViewportWheel()
+    this.listenViewportPointerdown() // 按下
+    this.listenViewportPointerup() // 按起
+    this.listenViewportPointermove() // 平移
+    this.listenWindowResize() // 窗口拉伸
+    this.listenViewportWheel() // 滚轮滚动
   }
 
   /**
    * 指针——按下
    */
-  listenViewportDown() {
+  listenViewportPointerdown() {
     this.viewport?.on('pointerdown', (e: any) => {
       const which = e.data.originalEvent.which
 
-      if (this.WD) {
-        const worldX = this.WD?.worldX
-        const worldY = this.WD?.worldY
+      if (this.whiteboard) {
+        const worldX = this.whiteboard?.worldX
+        const worldY = this.whiteboard?.worldY
 
         // 鼠标左键
         if (which == 1) {
-          if (this.WD?.control?.selection) {
-            this.WD?.control?.selection.range?.pointerdown()
+          if (this.whiteboard?.control?.selection) {
+            this.whiteboard?.control?.selection.range?.pointerdown()
 
-            if (this.WD?.control?.selection.range?.rangeStatus) {
+            // selction range模块中有元素选中，由range进行事件接管，不往下传递
+            if (this.whiteboard?.control?.selection.range?.rangeStatus) {
               return
             }
           }
 
-          this.WD?.control?.pointerdown(worldX, worldY)
+          this.whiteboard?.control?.pointerdown(worldX, worldY)
         }
       }
     })
@@ -53,10 +51,23 @@ class Event {
   /**
    * 指针——抬起
    */
-  listenViewportUp() {
-    this.viewport?.on('pointerup', (e: any) => {
-      if (this.WD?.control?.selection) {
-        this.WD?.control?.selection.range?.pointerup()
+  listenViewportPointerup() {
+    this.viewport?.on('pointerup', () => {
+      if (this.whiteboard?.control?.selection) {
+        this.whiteboard?.control?.selection.range?.pointerup()
+      }
+    })
+  }
+
+  /**
+   * 指针——移动中
+   */
+  listenViewportPointermove() {
+    this.viewport?.on('pointermove', () => {
+      this.whiteboard?.updatePosition()
+
+      if (this.whiteboard?.control?.selection) {
+        this.whiteboard?.control?.selection.range?.pointermove()
       }
     })
   }
@@ -71,19 +82,6 @@ class Event {
   }
 
   /**
-   * 指针——移动中
-   */
-  listenViewportMove() {
-    this.viewport?.on('pointermove', () => {
-      this.WD?.updatePosition()
-
-      if (this.WD?.control?.selection) {
-        this.WD?.control?.selection.range?.pointermove()
-      }
-    })
-  }
-
-  /**
    * 监听浏览器窗口拉伸
    */
   listenWindowResize() {
@@ -92,13 +90,11 @@ class Event {
         // 更新视图大小、更新背景网格
         this.app.renderer.resize(window.innerWidth, window.innerHeight)
         this.viewport?.resize()
-        this.WD?.updateGridBgSize()
-        this.WD?.updateGridBgTexture()
+        this.whiteboard?.updateGridBgSize()
+        this.whiteboard?.updateGridBgTexture()
 
-        // range框响应窗口变化
-        if (this.WD?.control?.selection) {
-          this.WD?.control?.selection.range?.draw()
-        }
+        // range响应窗口变化
+        this.updateRange()
       }
     }
   }
@@ -109,14 +105,21 @@ class Event {
   listenViewportWheel() {
     if (this.viewport) {
       this.viewport.on('moved', () => {
-        this.WD?.updatePosition()
-        this.WD?.updateGridBgTexture()
+        this.whiteboard?.updatePosition()
+        this.whiteboard?.updateGridBgTexture()
 
-        // range框响应窗口变化
-        if (this.WD?.control?.selection) {
-          this.WD?.control?.selection.range?.draw()
-        }
+        // range响应窗口变化
+        this.updateRange()
       })
+    }
+  }
+
+  /**
+   * 更新range
+   */
+  updateRange() {
+    if (this.whiteboard?.control?.selection) {
+      this.whiteboard?.control?.selection.range?.draw()
     }
   }
 }

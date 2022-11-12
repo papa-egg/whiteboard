@@ -33,7 +33,7 @@ class Whiteboard {
     this.updateGridBgSize()
     this.updateGridBgTexture()
 
-    this.event = new Event(this)
+    this.event = new Event()
     this.control = new Control(this)
     this.tool = new Tool(this)
 

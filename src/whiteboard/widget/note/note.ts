@@ -39,6 +39,7 @@ class Note extends Widget {
     this.noteColor = noteColor
 
     this.sprite = new Container()
+    this.sprite.addChild(new Graphics())
 
     this.draw()
   }
@@ -46,15 +47,15 @@ class Note extends Widget {
   draw() {
     const {noteColor, w, h, x, y, a} = this
 
-    const noteBgSprite = new Graphics()
+    const noteBgSprite = this.sprite.children[0]
+    noteBgSprite.clear()
     noteBgSprite.beginFill(noteColor)
     noteBgSprite.drawRect(0, 0, w, h)
     noteBgSprite.endFill()
 
-    this.sprite.addChild(noteBgSprite)
+    this.sprite.angle = a
     this.sprite.x = x
     this.sprite.y = y
-    this.sprite.angle = a
     this.sprite.pivot.x = w / 2
     this.sprite.pivot.y = h / 2
   }
@@ -69,7 +70,7 @@ class Note extends Widget {
   scaleEnd() {}
 
   drag(dragOptions: any) {
-    const {dragType, x, y, w, h, scaled} = dragOptions
+    const {dragType, x, y, w, h} = dragOptions
 
     if (dragType === 'scale') {
       this.sprite.x = x

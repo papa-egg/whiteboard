@@ -1,6 +1,6 @@
 @font-face {
   font-family: "iconfont"; /* Project id  */
-  src: url('iconfont.ttf?t=1667541730363') format('truetype');
+  src: url('iconfont.ttf?t=1668260758287') format('truetype');
 }
 
 .iconfont {
@@ -15,6 +15,10 @@
   content: "\e665";
 }
 
+.icon-yuanxingweixuanzhong:before {
+  content: "\e72f";
+}
+
 .icon-frame:before {
   content: "\e8df";
 }
@@ -23,8 +27,28 @@
   content: "\e639";
 }
 
-.icon-xingzhuang-sanjiaoxing:before {
+.icon-checkbox-weixuan:before {
+  content: "\e8b5";
+}
+
+.icon-shangchuandaochu:before {
+  content: "\e8c6";
+}
+
+.icon-rotate:before {
+  content: "\e6aa";
+}
+
+.icon-xingzhuang-tuoyuanxing:before {
   content: "\eb99";
+}
+
+.icon-xingzhuang-sanjiaoxing:before {
+  content: "\eb9a";
+}
+
+.icon-Line:before {
+  content: "\e66a";
 }
 
 .icon-24gl-circle:before {
@@ -35,8 +59,16 @@
   content: "\ea98";
 }
 
+.icon-xianduan:before {
+  content: "\e602";
+}
+
 .icon-huabi:before {
   content: "\e61f";
+}
+
+.icon-tx-zhengfangxing:before {
+  content: "\e650";
 }
 
 .icon-note:before {

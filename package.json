@@ -39,6 +39,7 @@
     "jest-watch-typeahead": "^1.0.0",
     "mini-css-extract-plugin": "^2.4.5",
     "node-sass": "^7.0.3",
+    "pixi-svg": "^3.1.0",
     "pixi-viewport": "^4.36.0",
     "pixi.js": "^6.5.6",
     "postcss": "^8.4.4",
