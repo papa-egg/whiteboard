@@ -72,7 +72,9 @@ class Range {
     // 绘制元素外框和辅助点、辅助线
     this.create()
     this.draw()
+  }
 
+  initMove() {
     // 初始化为平移
     const worldPoint: IPoint = getWorldPointerPoint()
     this.rangeStatus = 'move'
@@ -115,9 +117,6 @@ class Range {
       this.rangeStatus = 'rotate'
       this.startPoint = worldPoint
       this.startRangeData = Object.assign({}, this.rangeData)
-
-      console.log('111111111', this.rangeData)
-      console.log('222222222', this.startRangeData)
     }
 
     // 是否在辅助线框内
@@ -132,8 +131,6 @@ class Range {
         this.startRangeData = Object.assign({}, this.rangeData)
       }
     }
-
-    console.log('this.rangeStatus', this.rangeStatus)
   }
 
   pointerup() {
@@ -284,8 +281,6 @@ class Range {
     // 旋转点
     this.rotateSprite.position.set(0, h / 2 + 20)
     this.rangeSprite.angle = a
-
-    console.log('rangeSprite', this.rangeSprite)
   }
 
   destroy() {

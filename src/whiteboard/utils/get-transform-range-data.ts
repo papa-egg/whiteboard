@@ -144,8 +144,6 @@ const getTransformRangeData = (transformOptions: ITransformOptions) => {
   const ratioX = w / (w + h)
   const ratioY = 1 - ratioX
 
-  console.log('rangeStatus', rangeStatus)
-
   // 平移
   if (rangeStatus === 'move') {
     endRangeData.x += endPoint.x - startPoint.x
@@ -191,8 +189,6 @@ const getTransformRangeData = (transformOptions: ITransformOptions) => {
       endRangeData.h = h
     }
   }
-
-  console.log('endRangeData', endRangeData)
 
   return endRangeData
 }

@@ -53,9 +53,18 @@ class Event {
    */
   listenViewportPointerup() {
     this.viewport?.on('pointerup', () => {
+      const worldX = this.whiteboard?.worldX
+      const worldY = this.whiteboard?.worldY
+
       if (this.whiteboard?.control?.selection) {
         this.whiteboard?.control?.selection.range?.pointerup()
+
+        if (this.whiteboard?.control?.selection.range?.rangeStatus) {
+          return
+        }
       }
+
+      this.whiteboard?.control?.pointerup(worldX, worldY)
     })
   }
 
@@ -64,11 +73,20 @@ class Event {
    */
   listenViewportPointermove() {
     this.viewport?.on('pointermove', () => {
+      const worldX = this.whiteboard?.worldX
+      const worldY = this.whiteboard?.worldY
+
       this.whiteboard?.updatePosition()
 
       if (this.whiteboard?.control?.selection) {
         this.whiteboard?.control?.selection.range?.pointermove()
+
+        if (this.whiteboard?.control?.selection.range?.rangeStatus) {
+          return
+        }
       }
+
+      this.whiteboard?.control?.pointermove(worldX, worldY)
     })
   }
 

@@ -1,6 +1,9 @@
 import Box from '../box/box'
 import Range from '../range/range'
+import getAngle from '../utils/get-angle'
 import getBoundPoints from '../utils/get-bound-points'
+import getJoinPoint from '../utils/get-join-point'
+import getStraightDistance from '../utils/get-straight-distance'
 
 interface IRangeData {
   x: number
@@ -27,8 +30,6 @@ class Selection {
     this.rangeData = this.getRangeData(this.boxs)
     this.adapter = this.getAdapter(this.boxs)
 
-    console.log('this.rangeData', this.rangeData)
-
     this.range = new Range({
       selection: this,
       rangeData: this.rangeData,
@@ -40,8 +41,6 @@ class Selection {
     if (!this.rangeData || !this.range) return
     const {rangeStatus, dx, dy, rangeData} = options
     const startRangeData = this.rangeData
-
-    console.log(options)
 
     switch (rangeStatus) {
       case 'move': {
@@ -71,7 +70,15 @@ class Selection {
         this.range?.update(rangeData)
 
         this.boxs.forEach((box: Box) => {
-          box.widget.rotate(rangeData.a - startRangeData.a + box.widget.a)
+          const distance = getStraightDistance({x: startRangeData.x, y: startRangeData.y}, {x: box.widget.x, y: box.widget.y})
+          const angle = getAngle({x: startRangeData.x, y: startRangeData.y}, {x: box.widget.x, y: box.widget.y}) + rangeData.a - startRangeData.a
+          const rotatedPoint = getJoinPoint(distance, angle, {x: rangeData.x, y: rangeData.y})
+
+          box.widget.rotate({
+            x: rotatedPoint.x,
+            y: rotatedPoint.y,
+            a: rangeData.a - startRangeData.a + box.widget.a,
+          })
         })
 
         break
@@ -95,10 +102,14 @@ class Selection {
           const scaled = rangeData.w / startRangeData.w
 
           this.boxs.forEach((box: Box) => {
+            const distance = getStraightDistance({x: startRangeData.x, y: startRangeData.y}, {x: box.widget.x, y: box.widget.y}) * scaled
+            const angle = getAngle({x: startRangeData.x, y: startRangeData.y}, {x: box.widget.x, y: box.widget.y})
+            const dragedPoint = getJoinPoint(distance, angle, {x: rangeData.x, y: rangeData.y})
+
             box.widget.drag({
               dragType: 'scale',
-              x: rangeData.x - rangeData.w / 2 + Math.abs((box.widget.x - startRangeData.x - startRangeData.w / 2) * scaled),
-              y: rangeData.y - rangeData.h / 2 + Math.abs((box.widget.y - startRangeData.y - startRangeData.h / 2) * scaled),
+              x: dragedPoint.x,
+              y: dragedPoint.y,
               w: box.widget.w * scaled,
               h: box.widget.h * scaled,
               scaled,
@@ -174,8 +185,8 @@ class Selection {
       const maxX = Math.max(...xArr)
       const maxY = Math.max(...yArr)
 
-      rangeData.x = minX
-      rangeData.y = minY
+      rangeData.x = minX + (maxX - minX) / 2
+      rangeData.y = minY + (maxY - minY) / 2
       rangeData.w = maxX - minX
       rangeData.h = maxY - minY
       rangeData.a = 0

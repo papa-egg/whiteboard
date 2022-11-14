@@ -59,6 +59,21 @@ class Whiteboard {
           noteColor: 0xff00ff,
         },
       },
+      {
+        id: '222',
+        type: 'note',
+        layer: 0,
+        locked: false,
+        widget: {
+          x: 100,
+          y: 100,
+          w: 200,
+          h: 200,
+          a: 30,
+          s: 1,
+          noteColor: 0xffff00,
+        },
+      },
     ]
 
     this.boxs = elementInfoList.map((elementInfo: any) => {

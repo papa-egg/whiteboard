@@ -15,7 +15,7 @@ interface IPoint {
  * @param {number} h
  * @param {number} a
  */
-const getBoundPoints = (x: number, y: number, w: number, h: number, a: number) => {
+const getBoundPoints = (x: number, y: number, w: number, h: number, a: number): IPoint[] => {
   const boundPoints = [
     {
       x: x - w / 2,
@@ -35,14 +35,18 @@ const getBoundPoints = (x: number, y: number, w: number, h: number, a: number) =
     },
   ]
 
-  return boundPoints.map((point: IPoint) => {
-    const centerPoint: IPoint = {x, y}
-    const distance = getStraightDistance(point, centerPoint)
-    const angle = a + getAngle(centerPoint, point)
-    const endPoint = getJoinPoint(distance, angle, centerPoint)
+  if (a === 0) {
+    return boundPoints
+  } else {
+    return boundPoints.map((point: IPoint) => {
+      const centerPoint: IPoint = {x, y}
+      const distance = getStraightDistance(point, centerPoint)
+      const angle = a + getAngle(centerPoint, point)
+      const endPoint = getJoinPoint(distance, angle, centerPoint)
 
-    return endPoint
-  })
+      return endPoint
+    })
+  }
 }
 
 export default getBoundPoints

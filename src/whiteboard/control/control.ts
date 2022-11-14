@@ -5,6 +5,8 @@ import Whiteboard from '../whiteboard'
 import getBoundPoints from '../utils/get-bound-points'
 import isPointInPolygon from '../utils/isPointInPolygon'
 import Selection from '../selection/selection'
+import SelectBox from '../select-box/select-box'
+import isPolygonIntersect from '../utils/isPolygonIntersect'
 
 interface IPoint {
   x: number
@@ -20,6 +22,9 @@ class Control {
   private viewport?: Viewport
 
   public selection?: Selection
+
+  public selectFlag: boolean = false // 是否开启选框
+  public selectBox?: SelectBox // 选框实例
 
   constructor(whiteboard: Whiteboard) {
     this.WD = whiteboard
@@ -42,23 +47,67 @@ class Control {
     })
 
     if (selectedBox) {
+      // 如果命中元素
       if (!this.isSameSelection(selectedBox)) {
         if (this.selection) {
           this.destroySelection()
         }
 
         this.selection = new Selection([selectedBox])
+        this.selection?.range?.initMove()
       }
     } else {
+      // 点击selection以外内容，清除selection
       if (this.selection) {
         this.destroySelection()
       }
+
+      // 如果未命中元素. 创建选框
+      this.selectFlag = true
+      this.selectBox = new SelectBox({x, y})
     }
   }
 
-  pointerup() {}
+  pointerup(x: number, y: number) {
+    // 清除选框
+    if (this.selectFlag) {
+      this.selectFlag = false
 
-  pointermove() {}
+      if (this.selectBox) {
+        const firstPolygon: IPoint[] = this.selectBox.getBoundPoints()
+        const boxs = this.WD?.boxs
+        const selectBoxs =
+          boxs?.filter((box) => {
+            const {x, y, w, h, a} = box.widget
+            const secondPolygon = getBoundPoints(x, y, w, h, a)
+            if (firstPolygon.length <= 0) return false
+
+            // 和选框相交，加入选中队列
+            if (isPolygonIntersect(firstPolygon, secondPolygon)) {
+              return true
+            } else {
+              return false
+            }
+          }) || []
+
+        console.log('selectBoxs', selectBoxs)
+
+        if (selectBoxs && selectBoxs.length > 0) {
+          this.selection = new Selection(selectBoxs)
+        }
+      }
+
+      this.selectBox?.destroy()
+      this.selectBox = undefined
+    }
+  }
+
+  pointermove(x: number, y: number) {
+    // 绘制选框
+    if (this.selectFlag) {
+      this.selectBox?.update({x, y})
+    }
+  }
 
   /**
    * selection选中元素是否相同

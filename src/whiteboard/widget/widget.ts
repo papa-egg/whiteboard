@@ -16,11 +16,17 @@ class Widget {
     this.y = this.sprite.y
   }
 
-  rotate(angle: number) {
-    this.sprite.angle = angle
+  rotate(rotateOptions: {x: number; y: number; a: number}) {
+    const {x, y, a} = rotateOptions
+
+    this.sprite.x = x
+    this.sprite.y = y
+    this.sprite.angle = a
   }
 
   rotateEnd() {
+    this.x = this.sprite.x
+    this.y = this.sprite.y
     this.a = this.sprite.angle
   }
 }
