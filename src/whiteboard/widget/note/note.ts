@@ -60,15 +60,6 @@ class Note extends Widget {
     this.sprite.pivot.y = h / 2
   }
 
-  moveEnd() {
-    this.x = this.sprite.x
-    this.y = this.sprite.y
-  }
-
-  rotateEnd() {}
-
-  scaleEnd() {}
-
   drag(dragOptions: any) {
     const {dragType, x, y, w, h} = dragOptions
 

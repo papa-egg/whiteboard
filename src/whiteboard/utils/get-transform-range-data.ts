@@ -1,4 +1,5 @@
 import getBoundByPoints from './get-bound-by-points'
+import getAngle from './get-angle'
 
 interface IPoint {
   x: number
@@ -23,6 +24,43 @@ interface ITransformOptions {
   dragType?: string
 }
 
+// 获取旋转角度值
+const getRotateAngle = (px: number, py: number, mx: number, my: number): number => {
+  const x: number = Math.abs(px - mx)
+  const y: number = Math.abs(py - my)
+  const z: number = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
+  const cos: number = y / z
+  const radina: number = Math.acos(cos)
+  let angle: number = Math.floor(180 / (Math.PI / radina))
+
+  if (mx > px && my > py) {
+    angle = 180 - angle
+  }
+
+  if (mx == px && my > py) {
+    angle = 180
+  }
+
+  if (mx > px && my == py) {
+    angle = 90
+  }
+
+  if (mx < px && my > py) {
+    angle = 180 + angle
+  }
+
+  if (mx < px && my == py) {
+    angle = 270
+  }
+
+  if (mx < px && my < py) {
+    angle = 360 - angle
+  }
+
+  return angle
+}
+
+// 获取辅助点坐标
 const getAuxPoint = (pointerIndex: number, rangeData: IRangeData) => {
   const {x, y, w, h, a, s} = rangeData
   const rangePoints: IPoint[] = [
@@ -106,10 +144,19 @@ const getTransformRangeData = (transformOptions: ITransformOptions) => {
   const ratioX = w / (w + h)
   const ratioY = 1 - ratioX
 
+  console.log('rangeStatus', rangeStatus)
+
   // 平移
   if (rangeStatus === 'move') {
     endRangeData.x += endPoint.x - startPoint.x
     endRangeData.y += endPoint.y - startPoint.y
+  }
+
+  // 旋转
+  if (rangeStatus === 'rotate') {
+    const angle = getRotateAngle(endPoint.x, endPoint.y, x, y) || 0
+
+    endRangeData.a = angle
   }
 
   // 拖拽辅助点
@@ -144,6 +191,8 @@ const getTransformRangeData = (transformOptions: ITransformOptions) => {
       endRangeData.h = h
     }
   }
+
+  console.log('endRangeData', endRangeData)
 
   return endRangeData
 }

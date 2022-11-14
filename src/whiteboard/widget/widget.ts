@@ -2,6 +2,7 @@ class Widget {
   public sprite: any
   public x: number = 0
   public y: number = 0
+  public a: number = 0
 
   constructor() {}
 
@@ -10,13 +11,17 @@ class Widget {
     this.sprite.y = this.y + dy
   }
 
+  moveEnd() {
+    this.x = this.sprite.x
+    this.y = this.sprite.y
+  }
+
   rotate(angle: number) {
     this.sprite.angle = angle
   }
 
-  scale(scale: number) {
-    this.sprite.scale.x = scale
-    this.sprite.scale.y = scale
+  rotateEnd() {
+    this.a = this.sprite.angle
   }
 }
 

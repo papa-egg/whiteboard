@@ -35,7 +35,7 @@ const getBoundPoints = (x: number, y: number, w: number, h: number, a: number) =
     },
   ]
 
-  boundPoints.map((point: IPoint) => {
+  return boundPoints.map((point: IPoint) => {
     const centerPoint: IPoint = {x, y}
     const distance = getStraightDistance(point, centerPoint)
     const angle = a + getAngle(centerPoint, point)
@@ -43,8 +43,6 @@ const getBoundPoints = (x: number, y: number, w: number, h: number, a: number) =
 
     return endPoint
   })
-
-  return boundPoints
 }
 
 export default getBoundPoints

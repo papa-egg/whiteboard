@@ -8,6 +8,7 @@ import getScreenPointerPoint from '../utils/get-screen-pointer-point'
 import getViewportScaled from '../utils/get-viewport-scaled'
 import getViewport from '../utils/get-viewport'
 import getWhiteboard from '../utils/get-whiteboard'
+import getRotatedPoint from '../utils/get-roteted-point'
 
 interface IPoint {
   x: number
@@ -85,24 +86,7 @@ class Range {
     const worldPoint: IPoint = getWorldPointerPoint()
     const screenPoint = getScreenPointerPoint()
     const {x, y, w, h, a, s} = this.toScreenRangeData(this.rangeData)
-    const auxPoints = [
-      {
-        x: x - w / 2,
-        y: y - h / 2,
-      },
-      {
-        x: x + w / 2,
-        y: y - h / 2,
-      },
-      {
-        x: x + w / 2,
-        y: y + h / 2,
-      },
-      {
-        x: x - w / 2,
-        y: y + h / 2,
-      },
-    ]
+    const auxPoints = getBoundPoints(x, y, w, h, a)
     let selectFlag: boolean = false
 
     // 是否在辅助点上
@@ -120,9 +104,26 @@ class Range {
       }
     })
 
+    // 是否在旋转点上
+    const rotatedPoint = getRotatedPoint({x, y}, {x, y: y + h / 2 + 20}, a)
+    const rotateDx = Math.abs(screenPoint.x - rotatedPoint.x)
+    const rotateDy = Math.abs(screenPoint.y - rotatedPoint.y)
+
+    if (Math.sqrt(rotateDx * rotateDx + rotateDy * rotateDy) < 10) {
+      selectFlag = true
+
+      this.rangeStatus = 'rotate'
+      this.startPoint = worldPoint
+      this.startRangeData = Object.assign({}, this.rangeData)
+
+      console.log('111111111', this.rangeData)
+      console.log('222222222', this.startRangeData)
+    }
+
     // 是否在辅助线框内
     if (!selectFlag) {
       const boundPoints = getBoundPoints(x, y, w, h, a)
+
       if (isPointInPolygon(screenPoint, boundPoints)) {
         selectFlag = true
 
@@ -131,12 +132,20 @@ class Range {
         this.startRangeData = Object.assign({}, this.rangeData)
       }
     }
+
+    console.log('this.rangeStatus', this.rangeStatus)
   }
 
   pointerup() {
     if (this.rangeStatus === 'move') {
       this.transform({
         rangeStatus: 'moveEnd',
+      })
+    }
+
+    if (this.rangeStatus === 'rotate') {
+      this.transform({
+        rangeStatus: 'rotateEnd',
       })
     }
 
@@ -175,11 +184,12 @@ class Range {
   }
 
   setRangeVisible(visible: boolean) {
-    if (visible) {
-      this.rangeSprite.alpha = 1
-    } else {
-      this.rangeSprite.alpha = 0
-    }
+    this.rangeSprite.alpha = 1
+    // if (visible) {
+    //   this.rangeSprite.alpha = 1
+    // } else {
+    //   this.rangeSprite.alpha = 0
+    // }
   }
 
   update(rangeData: IRangeData) {
@@ -227,6 +237,8 @@ class Range {
     rotateImagesprite.width = 16
     rotateImagesprite.height = 16
     this.rotateSprite.addChild(rotateImagesprite)
+    this.rotateSprite.pivot.x = 10
+    this.rotateSprite.pivot.y = 10
     this.rangeSprite.addChild(this.rotateSprite)
 
     // NOTE: 不随viewport进行缩放，所以渲染到stage画布
@@ -245,9 +257,6 @@ class Range {
     pointSprite.drawCircle(0, 0, 5)
     pointSprite.endFill()
 
-    pointSprite.pivot.x = 0
-    pointSprite.pivot.y = 0
-
     return pointSprite
   }
 
@@ -257,22 +266,26 @@ class Range {
   draw() {
     const {x, y, w, h, a, s} = this.toScreenRangeData(this.rangeData)
 
+    this.rangeSprite.x = x
+    this.rangeSprite.y = y
+
     // 辅助线
     this.auxLineSprite.clear()
     this.auxLineSprite.lineStyle(1, 0x4076f6, 1)
     this.auxLineSprite.beginFill(0xffffff, 0.001)
-    this.auxLineSprite.drawRect(x - w / 2, y - h / 2, w, h)
+    this.auxLineSprite.drawRect(-w / 2, -h / 2, w, h)
 
     // 辅助点
-    this.auxPointLeftTopSprite.position.set(x - w / 2, y - h / 2)
-    this.auxPointRightTopSprite.position.set(x + w / 2, y - h / 2)
-    this.auxPointRightBottomSprite.position.set(x + w / 2, y + h / 2)
-    this.auxPointLeftBottomSprite.position.set(x - w / 2, y + h / 2)
+    this.auxPointLeftTopSprite.position.set(-w / 2, -h / 2)
+    this.auxPointRightTopSprite.position.set(w / 2, -h / 2)
+    this.auxPointRightBottomSprite.position.set(w / 2, h / 2)
+    this.auxPointLeftBottomSprite.position.set(-w / 2, h / 2)
 
     // 旋转点
-    this.rotateSprite.position.set(x - 10, y + h / 2 + 10)
-
+    this.rotateSprite.position.set(0, h / 2 + 20)
     this.rangeSprite.angle = a
+
+    console.log('rangeSprite', this.rangeSprite)
   }
 
   destroy() {

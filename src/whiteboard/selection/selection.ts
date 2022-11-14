@@ -24,14 +24,14 @@ class Selection {
 
   constructor(boxs: Box[]) {
     this.boxs = boxs
-    const rangeData = this.getRangeData(this.boxs)
-    this.rangeData = rangeData
-
+    this.rangeData = this.getRangeData(this.boxs)
     this.adapter = this.getAdapter(this.boxs)
+
+    console.log('this.rangeData', this.rangeData)
 
     this.range = new Range({
       selection: this,
-      rangeData: rangeData,
+      rangeData: this.rangeData,
       adapter: this.adapter,
     })
   }
@@ -40,6 +40,8 @@ class Selection {
     if (!this.rangeData || !this.range) return
     const {rangeStatus, dx, dy, rangeData} = options
     const startRangeData = this.rangeData
+
+    console.log(options)
 
     switch (rangeStatus) {
       case 'move': {
@@ -60,6 +62,26 @@ class Selection {
 
         this.boxs.forEach((box: Box) => {
           box.widget.moveEnd()
+        })
+
+        break
+      }
+
+      case 'rotate': {
+        this.range?.update(rangeData)
+
+        this.boxs.forEach((box: Box) => {
+          box.widget.rotate(rangeData.a - startRangeData.a + box.widget.a)
+        })
+
+        break
+      }
+
+      case 'rotateEnd': {
+        this.rangeData = Object.assign({}, this.range.rangeData)
+
+        this.boxs.forEach((box: Box) => {
+          box.widget.rotateEnd()
         })
 
         break

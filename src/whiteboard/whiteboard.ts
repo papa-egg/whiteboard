@@ -87,6 +87,8 @@ class Whiteboard {
     ;(document.getElementById(this.viewId) as HTMLElement).appendChild(app.view)
 
     this.app = app
+
+    // this.app.renderer.plugins.interaction.cursorStyles.default = 'help'
   }
 
   /**
