@@ -1,6 +1,10 @@
 import {IBox} from '../../interface/box'
 import Note from '../widget/note/note'
 import getAdapter from '../adapter/adapter'
+import Circle from '../widget/circle/circle'
+import Rectangle from '../widget/rectangle/rectangle'
+import RoundedRectangle from '../widget/rounded-rectangle/rounded-rectangle'
+import Triangle from '../widget/triangle/triangle'
 
 /**
  * 元素实例
@@ -13,7 +17,6 @@ class Box {
 
   public instance: any // 图形元素实例
   public widget: any // 图形元素
-
   public adapter: any // 适配器属性，供range调用
 
   constructor(boxOptions: IBox) {
@@ -49,6 +52,32 @@ class Box {
     switch (type) {
       case 'note': {
         instance = Note
+
+        break
+      }
+
+      case 'circle': {
+        instance = Circle
+
+        break
+      }
+
+      case 'rectangle': {
+        instance = Rectangle
+
+        break
+      }
+
+      case 'rounded-rectangle': {
+        instance = RoundedRectangle
+
+        break
+      }
+
+      case 'triangle': {
+        instance = Triangle
+
+        break
       }
     }
 

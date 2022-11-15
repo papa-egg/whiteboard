@@ -1,5 +1,9 @@
 import getBoundByPoints from './get-bound-by-points'
 import getAngle from './get-angle'
+import getStraightDistance from './get-straight-distance'
+import getJoinPoint from './get-join-point'
+import getRotatedPoint from './get-roteted-point'
+import getBoundPoints from './get-bound-points'
 
 interface IPoint {
   x: number
@@ -63,26 +67,18 @@ const getRotateAngle = (px: number, py: number, mx: number, my: number): number 
 // 获取辅助点坐标
 const getAuxPoint = (pointerIndex: number, rangeData: IRangeData) => {
   const {x, y, w, h, a, s} = rangeData
-  const rangePoints: IPoint[] = [
-    {
-      x: x - w / 2,
-      y: y - h / 2,
-    },
-    {
-      x: x + w / 2,
-      y: y - h / 2,
-    },
-    {
-      x: x + w / 2,
-      y: y + h / 2,
-    },
-    {
-      x: x - w / 2,
-      y: y + h / 2,
-    },
-  ]
+  const rangePoints: IPoint[] = getBoundPoints(x, y, w, h, a)
 
   return rangePoints[pointerIndex - 1]
+}
+
+/**
+ * 转换成旋转角度为0时坐标
+ */
+const toBeforeRotatedPoint = (startPoint: IPoint, centerPoint: IPoint, a: number) => {
+  const distance = getStraightDistance(startPoint, centerPoint)
+  const angle = getAngle(centerPoint, startPoint) - a
+  return getJoinPoint(distance, angle, centerPoint)
 }
 
 /**
@@ -91,24 +87,7 @@ const getAuxPoint = (pointerIndex: number, rangeData: IRangeData) => {
 const getOppositePoint = (pointerIndex: number, rangeData: IRangeData) => {
   let oppositePoint: IPoint = {x: 0, y: 0}
   const {x, y, w, h, a, s} = rangeData
-  const rangePoints: IPoint[] = [
-    {
-      x: x - w / 2,
-      y: y - h / 2,
-    },
-    {
-      x: x + w / 2,
-      y: y - h / 2,
-    },
-    {
-      x: x + w / 2,
-      y: y + h / 2,
-    },
-    {
-      x: x - w / 2,
-      y: y + h / 2,
-    },
-  ]
+  const rangePoints: IPoint[] = getBoundPoints(x, y, w, h, a)
 
   switch (pointerIndex) {
     case 1: {
@@ -160,31 +139,81 @@ const getTransformRangeData = (transformOptions: ITransformOptions) => {
   // 拖拽辅助点
   if (rangeStatus === 'drag' && pointerIndex && dragType) {
     const oppositePoint: IPoint = getOppositePoint(pointerIndex, startRangeData)
+    const auxPoint = getAuxPoint(pointerIndex, startRangeData)
 
-    // 等比例拉伸
+    // 等比例拖拽
     if (dragType === 'scale') {
-      // 偏移量总和
-      const auxPoint = getAuxPoint(pointerIndex, startRangeData)
-      let sumOffset: number = 0
+      const centerPoint = {x: startRangeData.x, y: startRangeData.y}
+      const auxBeforeRotatedPoint = toBeforeRotatedPoint(auxPoint, centerPoint, startRangeData.a)
+      const oppositeBeforeRotatedPoint = toBeforeRotatedPoint(oppositePoint, centerPoint, startRangeData.a)
+      const endBeforeRotatedPoint = toBeforeRotatedPoint(endPoint, centerPoint, startRangeData.a)
+      const startBeforeRotatedPoint = toBeforeRotatedPoint(startPoint, centerPoint, startRangeData.a)
+      let sumOffset: number = 0 // 偏移量总和
       let dragPoint: IPoint = {x: 0, y: 0}
 
       if (pointerIndex === 1 || pointerIndex === 3) {
-        sumOffset = endPoint.x - startPoint.x + (endPoint.y - startPoint.y)
+        sumOffset = endBeforeRotatedPoint.x - startBeforeRotatedPoint.x + (endBeforeRotatedPoint.y - startBeforeRotatedPoint.y)
         dragPoint = {
-          x: auxPoint.x + sumOffset * ratioX,
-          y: auxPoint.y + sumOffset * ratioY,
+          x: auxBeforeRotatedPoint.x + sumOffset * ratioX,
+          y: auxBeforeRotatedPoint.y + sumOffset * ratioY,
         }
       } else {
-        sumOffset = endPoint.x - startPoint.x - (endPoint.y - startPoint.y)
+        sumOffset = endBeforeRotatedPoint.x - startBeforeRotatedPoint.x - (endBeforeRotatedPoint.y - startBeforeRotatedPoint.y)
         dragPoint = {
-          x: auxPoint.x + sumOffset * ratioX,
-          y: auxPoint.y - sumOffset * ratioY,
+          x: auxBeforeRotatedPoint.x + sumOffset * ratioX,
+          y: auxBeforeRotatedPoint.y - sumOffset * ratioY,
         }
       }
 
-      const {x, y, w, h} = getBoundByPoints([dragPoint, oppositePoint])
-      endRangeData.x = x
-      endRangeData.y = y
+      const {x, y, w, h} = getBoundByPoints([dragPoint, oppositeBeforeRotatedPoint])
+      const boundPoints: IPoint[] = getBoundPoints(x, y, w, h, startRangeData.a)
+      const isOpposite: boolean = endBeforeRotatedPoint.x > oppositeBeforeRotatedPoint.x
+      let comparePoint: IPoint = {x: 0, y: 0}
+
+      switch (pointerIndex) {
+        case 1: {
+          comparePoint = isOpposite ? boundPoints[0] : boundPoints[2]
+          break
+        }
+        case 2: {
+          comparePoint = !isOpposite ? boundPoints[1] : boundPoints[3]
+          break
+        }
+        case 3: {
+          comparePoint = isOpposite ? boundPoints[0] : boundPoints[2]
+          break
+        }
+        case 4: {
+          comparePoint = isOpposite ? boundPoints[3] : boundPoints[1]
+          break
+        }
+      }
+
+      endRangeData.x = x + oppositePoint.x - comparePoint.x
+      endRangeData.y = y + oppositePoint.y - comparePoint.y
+      endRangeData.w = w
+      endRangeData.h = h
+
+      // 自由拖拽
+    } else if (dragType === 'free') {
+      const endDragPoint: IPoint = {
+        x: auxPoint.x + endPoint.x - startPoint.x,
+        y: auxPoint.y + endPoint.y - startPoint.y,
+      }
+
+      const centerPoint = {
+        x: (endDragPoint.x + oppositePoint.x) / 2,
+        y: (endDragPoint.y + oppositePoint.y) / 2,
+      }
+
+      endRangeData.x = (endDragPoint.x + oppositePoint.x) / 2
+      endRangeData.y = (endDragPoint.y + oppositePoint.y) / 2
+
+      const endDragBeforeRotatedPoint: IPoint = toBeforeRotatedPoint(endDragPoint, centerPoint, startRangeData.a)
+      const oppositeBeforeRotatedPoint: IPoint = toBeforeRotatedPoint(oppositePoint, centerPoint, startRangeData.a)
+
+      const {w, h} = getBoundByPoints([endDragBeforeRotatedPoint, oppositeBeforeRotatedPoint])
+
       endRangeData.w = w
       endRangeData.h = h
     }

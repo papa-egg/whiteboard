@@ -112,11 +112,19 @@ class Selection {
               y: dragedPoint.y,
               w: box.widget.w * scaled,
               h: box.widget.h * scaled,
-              scaled,
             })
           })
         } else if (this.adapter.dragType === 'free') {
           // 自由拖拽
+          this.boxs.forEach((box: Box) => {
+            box.widget.drag({
+              dragType: 'free',
+              x: rangeData.x,
+              y: rangeData.y,
+              w: rangeData.w,
+              h: rangeData.h,
+            })
+          })
         }
         break
       }
