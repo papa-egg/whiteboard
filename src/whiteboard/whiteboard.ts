@@ -130,6 +130,28 @@ class Whiteboard {
         },
       },
       {
+        id: '777',
+        type: 'pencil',
+        layer: 0,
+        locked: false,
+        widget: {
+          x: 0,
+          y: 0,
+          w: 0,
+          h: 0,
+          a: 0,
+          s: 1,
+          pathPoints: [
+            {x: 0, y: 0},
+            {x: 100, y: 100},
+            {x: 300, y: 0},
+          ],
+          strokeWidth: 2,
+          strokeColor: 0x0000ff,
+          locationType: 'auto',
+        },
+      },
+      {
         id: '111',
         type: 'note',
         layer: 0,

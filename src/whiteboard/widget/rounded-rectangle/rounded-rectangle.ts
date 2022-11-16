@@ -63,7 +63,7 @@ class RoundedRectangle extends Widget {
       roundedRectangleSprite.beginFill(backgroundColor)
     }
 
-    roundedRectangleSprite.drawRoundedRect(-w / 2, -h / 2, w, h, Math.min(w, h) * 0.1)
+    roundedRectangleSprite.drawRoundedRect(-w / 2, -h / 2, w, h, Math.min(w, h) * 0.2)
     roundedRectangleSprite.endFill()
 
     this.sprite.angle = a

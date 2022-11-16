@@ -20,7 +20,6 @@ const ToolComponent = () => {
           onClick={() => {
             toolSelect('pointer')
           }}
-          className={toolType === 'pointer' ? 'selected' : ''}
         >
           <Tooltip placement="right" title="选择">
             <i className="iconfont icon-xuanze"></i>
@@ -33,6 +32,16 @@ const ToolComponent = () => {
           className={toolType === 'pencil' ? 'selected' : ''}
         >
           <Tooltip placement="right" title="画笔">
+            <i className="iconfont icon-huabi"></i>
+          </Tooltip>
+        </li>
+        <li
+          onClick={() => {
+            toolSelect('text')
+          }}
+          className={toolType === 'text' ? 'selected' : ''}
+        >
+          <Tooltip placement="right" title="文本">
             <i className="iconfont icon-wenben"></i>
           </Tooltip>
         </li>

@@ -31,6 +31,7 @@ class Selection {
     this.adapter = this.getAdapter(this.boxs)
 
     this.range = new Range({
+      boxs: this.boxs,
       selection: this,
       rangeData: this.rangeData,
       adapter: this.adapter,
@@ -44,14 +45,24 @@ class Selection {
 
     switch (rangeStatus) {
       case 'move': {
-        this.range?.update(rangeData)
-
         const dx = rangeData.x - startRangeData.x
         const dy = rangeData.y - startRangeData.y
 
         this.boxs.forEach((box: Box) => {
+          const {x, y, w, h, a, s} = box.widget
           box.widget.move(dx, dy)
+
+          this.range?.updateBoxRange(box.id, {
+            x: x + dx,
+            y: y + dy,
+            w,
+            h,
+            a,
+            s,
+          })
         })
+
+        this.range?.update(rangeData)
 
         break
       }
@@ -67,8 +78,6 @@ class Selection {
       }
 
       case 'rotate': {
-        this.range?.update(rangeData)
-
         this.boxs.forEach((box: Box) => {
           const distance = getStraightDistance({x: startRangeData.x, y: startRangeData.y}, {x: box.widget.x, y: box.widget.y})
           const angle = getAngle({x: startRangeData.x, y: startRangeData.y}, {x: box.widget.x, y: box.widget.y}) + rangeData.a - startRangeData.a
@@ -79,7 +88,19 @@ class Selection {
             y: rotatedPoint.y,
             a: rangeData.a - startRangeData.a + box.widget.a,
           })
+
+          const {x, y, w, h, a, s} = box.widget
+          this.range?.updateBoxRange(box.id, {
+            x: rotatedPoint.x,
+            y: rotatedPoint.y,
+            w,
+            h,
+            a: rangeData.a - startRangeData.a + box.widget.a,
+            s,
+          })
         })
+
+        this.range?.update(rangeData)
 
         break
       }
@@ -95,8 +116,6 @@ class Selection {
       }
 
       case 'drag': {
-        this.range?.update(rangeData)
-
         if (this.adapter.dragType === 'scale') {
           // 等比例拖拽
           const scaled = rangeData.w / startRangeData.w
@@ -113,6 +132,16 @@ class Selection {
               w: box.widget.w * scaled,
               h: box.widget.h * scaled,
             })
+
+            const {x, y, w, h, a, s} = box.widget
+            this.range?.updateBoxRange(box.id, {
+              x: dragedPoint.x,
+              y: dragedPoint.y,
+              w: box.widget.w * scaled,
+              h: box.widget.h * scaled,
+              a,
+              s,
+            })
           })
         } else if (this.adapter.dragType === 'free') {
           // 自由拖拽
@@ -124,8 +153,21 @@ class Selection {
               w: rangeData.w,
               h: rangeData.h,
             })
+
+            const {x, y, w, h, a, s} = box.widget
+            this.range?.updateBoxRange(box.id, {
+              x: rangeData.x,
+              y: rangeData.y,
+              w: rangeData.w,
+              h: rangeData.h,
+              a,
+              s,
+            })
           })
         }
+
+        this.range?.update(rangeData)
+
         break
       }
 

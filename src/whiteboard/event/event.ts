@@ -33,6 +33,11 @@ class Event {
 
         // 鼠标左键
         if (which == 1) {
+          // 当工具栏未选中pointer时，清除原先selection选框
+          if (this.whiteboard.tool.toolType !== 'pointer') {
+            this.whiteboard?.control?.destroySelection()
+          }
+
           if (this.whiteboard?.control?.selection) {
             this.whiteboard?.control?.selection.range?.pointerdown()
 
@@ -138,6 +143,7 @@ class Event {
   updateRange() {
     if (this.whiteboard?.control?.selection) {
       this.whiteboard?.control?.selection.range?.draw()
+      this.whiteboard?.control?.selection.range?.drawBoxRanges()
     }
   }
 }

@@ -40,6 +40,9 @@ class Range {
     s: 1,
   }
 
+  public boxs: Box[] = []
+  public boxRanges: any[] = []
+
   public adapter: any
   public rangeSprite: any
   public auxLineSprite: any
@@ -63,13 +66,16 @@ class Range {
   rangeStatus: string = ''
 
   constructor(rangeOptions: any) {
-    const {rangeData, selection, adapter} = rangeOptions
+    const {rangeData, selection, adapter, boxs} = rangeOptions
 
+    this.boxs = boxs
     this.selection = selection
     this.rangeData = rangeData
     this.adapter = adapter
 
     // 绘制元素外框和辅助点、辅助线
+    this.createBoxRanges()
+    this.drawBoxRanges()
     this.create()
     this.draw()
   }
@@ -175,18 +181,25 @@ class Range {
     })
 
     // 元素变换过程中隐藏range框
-    if (this.rangeStatus) {
+    if (this.rangeStatus === 'move' || this.rangeStatus === 'drag') {
       this.setRangeVisible(false)
     }
   }
 
   setRangeVisible(visible: boolean) {
-    this.rangeSprite.alpha = 1
-    // if (visible) {
-    //   this.rangeSprite.alpha = 1
-    // } else {
-    //   this.rangeSprite.alpha = 0
-    // }
+    if (visible) {
+      this.rangeSprite.children[1].alpha = 1
+      this.rangeSprite.children[2].alpha = 1
+      this.rangeSprite.children[3].alpha = 1
+      this.rangeSprite.children[4].alpha = 1
+      this.rangeSprite.children[5].alpha = 1
+    } else {
+      this.rangeSprite.children[1].alpha = 0
+      this.rangeSprite.children[2].alpha = 0
+      this.rangeSprite.children[3].alpha = 0
+      this.rangeSprite.children[4].alpha = 0
+      this.rangeSprite.children[5].alpha = 0
+    }
   }
 
   update(rangeData: IRangeData) {
@@ -249,7 +262,7 @@ class Range {
   createPointSprite() {
     const pointSprite = new Graphics()
 
-    pointSprite.lineStyle(1, 0x8cb8c4, 1)
+    pointSprite.lineStyle(1, 0x4eabcf)
     pointSprite.beginFill(0xffffff)
     pointSprite.drawCircle(0, 0, 5)
     pointSprite.endFill()
@@ -268,8 +281,7 @@ class Range {
 
     // 辅助线
     this.auxLineSprite.clear()
-    this.auxLineSprite.lineStyle(1, 0x4076f6, 1)
-    this.auxLineSprite.beginFill(0xffffff, 0.001)
+    this.auxLineSprite.lineStyle(1, 0x4eabcf, 1)
     this.auxLineSprite.drawRect(-w / 2, -h / 2, w, h)
 
     // 辅助点
@@ -283,8 +295,88 @@ class Range {
     this.rangeSprite.angle = a
   }
 
+  // 绘制元素子项边框
+  drawBoxRanges() {
+    this.boxRanges.forEach((boxRange: any) => {
+      const {x, y, w, h, a, s} = this.toScreenRangeData({
+        x: boxRange.x,
+        y: boxRange.y,
+        w: boxRange.w,
+        h: boxRange.h,
+        a: boxRange.a,
+        s: boxRange.s,
+      })
+
+      const boundSprite = boxRange.sprite
+      boundSprite.clear()
+      boundSprite.lineStyle(1, 0x4eabcf, 1)
+      boundSprite.drawRect(-w / 2, -h / 2, w, h)
+      boundSprite.x = x
+      boundSprite.y = y
+      boundSprite.angle = a
+    })
+  }
+
+  // 创建元素子项边框
+  createBoxRanges() {
+    this.boxRanges = this.boxs.map((box: Box) => {
+      const {x, y, w, h, a, s} = this.toScreenRangeData({
+        x: box.widget.x,
+        y: box.widget.y,
+        w: box.widget.w,
+        h: box.widget.h,
+        a: box.widget.a,
+        s: box.widget.s,
+      })
+
+      const boundSprite = new Graphics()
+      const whiteboard = getWhiteboard()
+      whiteboard.app.stage.addChild(boundSprite)
+
+      return {
+        id: box.id,
+        sprite: boundSprite,
+        x: box.widget.x,
+        y: box.widget.y,
+        w: box.widget.w,
+        h: box.widget.h,
+        a: box.widget.a,
+        s: box.widget.s,
+      }
+    })
+  }
+
+  updateBoxRange(id: string, rangeData: IRangeData) {
+    this.boxRanges.forEach((boxRange: any) => {
+      if (boxRange.id === id) {
+        const {x, y, w, h, a, s} = this.toScreenRangeData(rangeData)
+        boxRange.x = rangeData.x
+        boxRange.y = rangeData.y
+        boxRange.w = rangeData.w
+        boxRange.h = rangeData.h
+        boxRange.a = rangeData.a
+        boxRange.s = rangeData.s
+
+        const boundSprite = boxRange.sprite
+        boundSprite.clear()
+        boundSprite.lineStyle(1, 0x4eabcf, 1)
+        boundSprite.drawRect(-w / 2, -h / 2, w, h)
+        boundSprite.x = x
+        boundSprite.y = y
+        boundSprite.angle = a
+      }
+    })
+  }
+
   destroy() {
     this.rangeSprite.destroy()
+
+    this.boxRanges.forEach((boxRange: any) => {
+      const sprite = boxRange.sprite
+
+      const whiteboard = getWhiteboard()
+      whiteboard.app.stage.removeChild(sprite)
+    })
   }
 
   /**

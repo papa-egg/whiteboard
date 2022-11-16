@@ -1,6 +1,12 @@
 import {Viewport} from 'pixi-viewport'
 import {Application} from 'pixi.js'
+import Box from '../box/box'
 import Whiteboard from '../whiteboard'
+// import {v4 as uuidv4} from 'uuid'
+
+// import {nanoid} from 'nanoid'
+
+// console.log(nanoid())
 
 class Tool {
   private WD?: Whiteboard
@@ -8,12 +14,51 @@ class Tool {
   private viewport?: Viewport
 
   public toolType: string = 'pointer'
+  public toolBox?: Box
 
   constructor(whiteboard: Whiteboard) {
     this.WD = whiteboard
     this.app = this.WD.app
     this.viewport = this.WD.viewport
   }
+
+  pointerdown(x: number, y: number) {
+    let boxInfo: any = null
+
+    switch (this.toolType) {
+      // 创建画笔
+      case 'pencil': {
+        boxInfo = {
+          id: '8888',
+          type: 'pencil',
+          layer: 0,
+          locked: false,
+          widget: {
+            x: 0,
+            y: 0,
+            w: 0,
+            h: 0,
+            a: 0,
+            s: 1,
+            pathPoints: [{x: x, y: y}],
+            strokeWidth: 2,
+            strokeColor: 0x000000,
+          },
+        }
+
+        break
+      }
+    }
+
+    // const box = new Box(boxInfo)
+    // box.createWidget(box.widget)
+    // this.viewport?.addChild(box.widget.sprite)
+    // this.toolBox = box
+  }
+
+  pointermove(x: number, y: number) {}
+
+  pointerup(x: number, y: number) {}
 
   updateToolType(toolType: string) {
     if (toolType) {

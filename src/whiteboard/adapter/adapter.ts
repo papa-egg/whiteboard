@@ -28,6 +28,12 @@ const triangle = {
   canLink: true,
 }
 
+const pencil = {
+  dragType: 'scale', // scale free
+  canRotate: true,
+  canLink: true,
+}
+
 const getAdapter = (type: string) => {
   let adapter: any
 
@@ -58,6 +64,12 @@ const getAdapter = (type: string) => {
 
     case 'triangle': {
       adapter = triangle
+
+      break
+    }
+
+    case 'pencil': {
+      adapter = pencil
 
       break
     }
