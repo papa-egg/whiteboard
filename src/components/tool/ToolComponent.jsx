@@ -1,6 +1,6 @@
 import {useState} from 'react'
 import {Tooltip} from 'antd'
-import './toolComponent.scss'
+import './toolComponent.css'
 
 const ToolComponent = () => {
   const [toolType, setToolType] = useState('')

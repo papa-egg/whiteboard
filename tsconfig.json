@@ -22,5 +22,7 @@
   },
   "include": [
     "src"
-  ]
+  ],
+  "extends": "./tsconfig.extend.json",
+  "experimentalDecorators": true
 }

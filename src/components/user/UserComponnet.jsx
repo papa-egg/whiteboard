@@ -1,4 +1,4 @@
-import './userComponent.scss'
+import './userComponent.css'
 
 const UserComponent = () => {
   return <div className="user-bar">user</div>

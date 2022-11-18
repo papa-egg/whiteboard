@@ -1,7 +1,7 @@
 import ViewComponent from '../view/ViewComponent'
 import ToolComponent from '../tool/ToolComponent'
 import UserComponnet from '../user/UserComponnet'
-import './whiteboardComponent.scss'
+import './whiteboardComponent.css'
 
 import Whiteboard from '../../whiteboard/whiteboard'
 

@@ -242,7 +242,7 @@ class Range {
     rotateBgSprite.drawCircle(8, 8, 10)
     rotateBgSprite.endFill()
     this.rotateSprite.addChild(rotateBgSprite)
-    const rotateTexture = Texture.from('./rotate.png')
+    const rotateTexture: any = Texture.from('./rotate.png')
     const rotateImagesprite = new Sprite(rotateTexture)
     rotateImagesprite.width = 16
     rotateImagesprite.height = 16

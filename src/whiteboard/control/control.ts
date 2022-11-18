@@ -101,8 +101,6 @@ class Control {
               }
             }) || []
 
-          console.log('selectBoxs', selectBoxs)
-
           if (selectBoxs && selectBoxs.length > 0) {
             this.selection = new Selection(selectBoxs)
           }

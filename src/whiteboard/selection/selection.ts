@@ -266,9 +266,7 @@ class Selection {
       boxs.forEach((box: Box) => {
         const adapter = box.adapter
 
-        if (adapter.dragType === 'scale') {
-          dragType = 'scale'
-        }
+        dragType = 'scale'
 
         if (!adapter.canRotate) {
           canRotate = false

@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react'
-import './viewComponent.scss'
+import './viewComponent.css'
 
 const ViewComponent = () => {
   useEffect(() => {

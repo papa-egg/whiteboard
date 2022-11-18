@@ -2,11 +2,7 @@ import {Viewport} from 'pixi-viewport'
 import {Application} from 'pixi.js'
 import Box from '../box/box'
 import Whiteboard from '../whiteboard'
-// import {v4 as uuidv4} from 'uuid'
-
-// import {nanoid} from 'nanoid'
-
-// console.log(nanoid())
+import {nanoid} from 'nanoid'
 
 class Tool {
   private WD?: Whiteboard
@@ -29,7 +25,7 @@ class Tool {
       // 创建画笔
       case 'pencil': {
         boxInfo = {
-          id: '8888',
+          id: nanoid(),
           type: 'pencil',
           layer: 0,
           locked: false,
@@ -50,15 +46,31 @@ class Tool {
       }
     }
 
-    // const box = new Box(boxInfo)
-    // box.createWidget(box.widget)
-    // this.viewport?.addChild(box.widget.sprite)
-    // this.toolBox = box
+    const box = new Box(boxInfo)
+    box.createWidget(boxInfo.widget)
+    this.viewport?.addChild(box.widget.sprite)
+    this.WD?.boxs?.push(box)
+    this.toolBox = box
   }
 
-  pointermove(x: number, y: number) {}
+  pointermove(x: number, y: number) {
+    if (!this.toolBox) return
 
-  pointerup(x: number, y: number) {}
+    switch (this.toolType) {
+      // 创建画笔
+      case 'pencil': {
+        this.toolBox?.widget.addPoint({x, y})
+
+        break
+      }
+    }
+  }
+
+  pointerup(x: number, y: number) {
+    if (this.toolBox) {
+      this.toolBox = undefined
+    }
+  }
 
   updateToolType(toolType: string) {
     if (toolType) {
