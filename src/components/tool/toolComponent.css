@@ -22,6 +22,10 @@
   color: #4dabcf;
 }
 
+.selected{
+  background: #edeeec;
+}
+
 .icon-note{
   font-size: 20px !important;
 }
