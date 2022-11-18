@@ -14,7 +14,7 @@ interface IRectangle {
 }
 
 /**
- * 圆形
+ * 矩型
  */
 class Rectangle extends Widget {
   public x: number = 0

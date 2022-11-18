@@ -7,6 +7,8 @@ import isPointInPolygon from '../utils/isPointInPolygon'
 import Selection from '../selection/selection'
 import SelectBox from '../select-box/select-box'
 import isPolygonIntersect from '../utils/isPolygonIntersect'
+import isPolygonLineIntersect from '../utils/isPolygonLineIntersect'
+import isPointInLine from '../utils/isPointInLine'
 
 interface IPoint {
   x: number
@@ -37,7 +39,7 @@ class Control {
       // 由tool模块接管
       this.whiteboard?.tool?.pointerdown(x, y)
     } else {
-      // 工具栏属性为 pointer 以外的情况时
+      // 工具栏属性为 pointer 的情况时
       const boxs = this.whiteboard?.factory?.boxs
       let selectedBox: any = null
 
@@ -80,7 +82,7 @@ class Control {
       // 由tool模块接管
       this.whiteboard?.tool?.pointerup(x, y)
     } else {
-      // 清除选框
+      // 选框选中
       if (this.selectFlag) {
         this.selectFlag = false
 
@@ -93,11 +95,21 @@ class Control {
               const secondPolygon = getBoundPoints(x, y, w, h, a)
               if (firstPolygon.length <= 0) return false
 
-              // 和选框相交，加入选中队列
-              if (isPolygonIntersect(firstPolygon, secondPolygon)) {
-                return true
+              // 如果是线段，判断多边形和线段是否相交
+              // 边框选中区域延伸5像素，方便选中
+              if (box.type === 'line') {
+                if (isPolygonLineIntersect(firstPolygon, box.widget.pathPoints, box.widget.strokeWidth + 5)) {
+                  return true
+                } else {
+                  return false
+                }
               } else {
-                return false
+                if (isPolygonIntersect(firstPolygon, secondPolygon)) {
+                  // 和选框相交，加入选中队列
+                  return true
+                } else {
+                  return false
+                }
               }
             }) || []
 
@@ -160,7 +172,11 @@ class Control {
     const {x, y, w, h, a} = element.widget
     const boundPoints: IPoint[] = getBoundPoints(x, y, w, h, a)
 
-    return isPointInPolygon(point, boundPoints)
+    if (element.type === 'line') {
+      return isPointInLine(point, element.widget.pathPoints, element.widget.strokeWidth)
+    } else {
+      return isPointInPolygon(point, boundPoints)
+    }
   }
 }
 

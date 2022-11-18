@@ -121,6 +121,14 @@ class Factory {
 
         break
       }
+
+      case 'line': {
+        defaultInfo.strokeColor = 0x000000
+        defaultInfo.strokeWidth = 2
+        defaultInfo.pathPoints = []
+
+        break
+      }
     }
 
     return defaultInfo

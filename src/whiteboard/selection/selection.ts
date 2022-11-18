@@ -40,11 +40,13 @@ class Selection {
 
   transform(options: any) {
     if (!this.rangeData || !this.range) return
-    const {rangeStatus, dx, dy, rangeData} = options
+    const {rangeStatus, dx, dy, rangeData, pathPoints} = options
     const startRangeData = this.rangeData
 
     switch (rangeStatus) {
       case 'move': {
+        this.range?.update(rangeData)
+
         const dx = rangeData.x - startRangeData.x
         const dy = rangeData.y - startRangeData.y
 
@@ -62,8 +64,6 @@ class Selection {
           })
         })
 
-        this.range?.update(rangeData)
-
         break
       }
 
@@ -72,6 +72,10 @@ class Selection {
 
         this.boxs.forEach((box: Box) => {
           box.widget.moveEnd()
+
+          if (this.adapter.dragType === 'point' && this.range) {
+            this.range.pathBasicPoints = JSON.parse(JSON.stringify(box.widget.pathPoints))
+          }
         })
 
         break
@@ -87,17 +91,33 @@ class Selection {
             x: rotatedPoint.x,
             y: rotatedPoint.y,
             a: rangeData.a - startRangeData.a + box.widget.a,
+            rotatePoint: {
+              x: rangeData.x,
+              y: rangeData.y,
+            },
           })
 
-          const {x, y, w, h, a, s} = box.widget
-          this.range?.updateBoxRange(box.id, {
-            x: rotatedPoint.x,
-            y: rotatedPoint.y,
-            w,
-            h,
-            a: rangeData.a - startRangeData.a + box.widget.a,
-            s,
-          })
+          if (box.adapter.dragType === 'point') {
+            const {x, y, w, h, a, s} = box.widget
+            this.range?.updateBoxRange(box.id, {
+              x,
+              y,
+              w,
+              h,
+              a: 0,
+              s: 1,
+            })
+          } else {
+            const {x, y, w, h, a, s} = box.widget
+            this.range?.updateBoxRange(box.id, {
+              x: rotatedPoint.x,
+              y: rotatedPoint.y,
+              w,
+              h,
+              a: rangeData.a - startRangeData.a + box.widget.a,
+              s,
+            })
+          }
         })
 
         this.range?.update(rangeData)
@@ -110,6 +130,10 @@ class Selection {
 
         this.boxs.forEach((box: Box) => {
           box.widget.rotateEnd()
+
+          if (this.adapter.dragType === 'point' && this.range) {
+            this.range.pathBasicPoints = JSON.parse(JSON.stringify(box.widget.pathPoints))
+          }
         })
 
         break
@@ -164,6 +188,27 @@ class Selection {
               s,
             })
           })
+        } else if (this.adapter.dragType === 'point') {
+          this.boxs.forEach((box: Box) => {
+            box.widget.drag({
+              dragType: 'point',
+              x: rangeData.x,
+              y: rangeData.y,
+              w: rangeData.w,
+              h: rangeData.h,
+              pathPoints: pathPoints,
+            })
+
+            const {x, y, w, h, a, s} = box.widget
+            this.range?.updateBoxRange(box.id, {
+              x: rangeData.x,
+              y: rangeData.y,
+              w: rangeData.w,
+              h: rangeData.h,
+              a,
+              s,
+            })
+          })
         }
 
         this.range?.update(rangeData)
@@ -176,6 +221,10 @@ class Selection {
 
         this.boxs.forEach((box: Box) => {
           box.widget.dragEnd()
+
+          if (this.adapter.dragType === 'point' && this.range) {
+            this.range.pathBasicPoints = JSON.parse(JSON.stringify(box.widget.pathPoints))
+          }
         })
 
         break
@@ -267,10 +316,7 @@ class Selection {
         const adapter = box.adapter
 
         dragType = 'scale'
-
-        if (!adapter.canRotate) {
-          canRotate = false
-        }
+        canRotate = true
       })
 
       canLink = false

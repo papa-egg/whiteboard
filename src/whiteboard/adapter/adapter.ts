@@ -1,37 +1,43 @@
 const note = {
-  dragType: 'scale', // scale free
+  dragType: 'scale', // scale free point
   canRotate: true,
   canLink: true,
 }
 
 const circle = {
-  dragType: 'free', // scale free
+  dragType: 'free',
   canRotate: true,
   canLink: true,
 }
 
 const rectangle = {
-  dragType: 'free', // scale free
+  dragType: 'free',
   canRotate: true,
   canLink: true,
 }
 
 const roundedRectangle = {
-  dragType: 'free', // scale free
+  dragType: 'free',
   canRotate: true,
   canLink: true,
 }
 
 const triangle = {
-  dragType: 'free', // scale free
+  dragType: 'free',
   canRotate: true,
   canLink: true,
 }
 
 const pencil = {
-  dragType: 'scale', // scale free
+  dragType: 'scale',
   canRotate: true,
   canLink: true,
+}
+
+const line = {
+  dragType: 'point',
+  canRotate: false,
+  canLink: false,
 }
 
 const getAdapter = (type: string) => {
@@ -70,6 +76,12 @@ const getAdapter = (type: string) => {
 
     case 'pencil': {
       adapter = pencil
+
+      break
+    }
+
+    case 'line': {
+      adapter = line
 
       break
     }

@@ -26,6 +26,7 @@ interface ITransformOptions {
   startRangeData: IRangeData
   pointerIndex?: number
   dragType?: string
+  handlerPoints?: IPoint[]
 }
 
 // 获取旋转角度值
@@ -115,9 +116,10 @@ const getOppositePoint = (pointerIndex: number, rangeData: IRangeData) => {
  * 变换计算
  */
 const getTransformRangeData = (transformOptions: ITransformOptions) => {
-  const {rangeStatus, startPoint, endPoint, startRangeData, pointerIndex, dragType} = transformOptions
+  const {rangeStatus, startPoint, endPoint, startRangeData, pointerIndex, dragType, handlerPoints = []} = transformOptions
   const endRangeData = Object.assign({}, startRangeData)
   const {x, y, w, h, a, s} = startRangeData
+  const pathPoints: IPoint[] = JSON.parse(JSON.stringify(handlerPoints))
 
   // 宽高比
   const ratioX = w / (w + h)
@@ -137,7 +139,7 @@ const getTransformRangeData = (transformOptions: ITransformOptions) => {
   }
 
   // 拖拽辅助点
-  if (rangeStatus === 'drag' && pointerIndex && dragType) {
+  if (rangeStatus === 'drag' && pointerIndex !== undefined && dragType) {
     const oppositePoint: IPoint = getOppositePoint(pointerIndex, startRangeData)
     const auxPoint = getAuxPoint(pointerIndex, startRangeData)
 
@@ -216,10 +218,27 @@ const getTransformRangeData = (transformOptions: ITransformOptions) => {
 
       endRangeData.w = w
       endRangeData.h = h
+    } else if (dragType === 'point') {
+      // 拖拽端点——线段
+      const dx = endPoint.x - startPoint.x
+      const dy = endPoint.y - startPoint.y
+
+      pathPoints[pointerIndex].x += dx
+      pathPoints[pointerIndex].y += dy
+
+      const {x, y, w, h} = getBoundByPoints(pathPoints)
+
+      endRangeData.x = x
+      endRangeData.y = y
+      endRangeData.w = w
+      endRangeData.h = h
     }
   }
 
-  return endRangeData
+  return {
+    endRangeData: endRangeData,
+    pathPoints: pathPoints,
+  }
 }
 
 export default getTransformRangeData

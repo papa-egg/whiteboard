@@ -166,6 +166,24 @@ class Whiteboard {
           noteColor: 0xff00ff,
         },
       },
+      {
+        id: '9999',
+        type: 'line',
+        layer: 0,
+        locked: false,
+        widget: {
+          pathPoints: [
+            {
+              x: 0,
+              y: 0,
+            },
+            {
+              x: 400,
+              y: -400,
+            },
+          ],
+        },
+      },
     ]
 
     boxInfoList.forEach((boxInfo: any) => {

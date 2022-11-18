@@ -6,6 +6,7 @@ import Rectangle from '../widget/rectangle/rectangle'
 import RoundedRectangle from '../widget/rounded-rectangle/rounded-rectangle'
 import Triangle from '../widget/triangle/triangle'
 import Pencil from '../widget/pencil/pencil'
+import Line from '../widget/line/line'
 
 /**
  * 元素实例
@@ -83,6 +84,12 @@ class Box {
 
       case 'pencil': {
         instance = Pencil
+
+        break
+      }
+
+      case 'line': {
+        instance = Line
 
         break
       }

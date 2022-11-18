@@ -15,7 +15,7 @@ interface ITriangle {
 }
 
 /**
- * 圆形
+ * 三角形
  */
 class Triangle extends Widget {
   public x: number = 0

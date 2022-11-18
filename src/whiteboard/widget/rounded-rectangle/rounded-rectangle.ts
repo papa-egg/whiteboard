@@ -14,7 +14,7 @@ interface IRoundedRectangle {
 }
 
 /**
- * 圆形
+ * 圆角矩型
  */
 class RoundedRectangle extends Widget {
   public x: number = 0

@@ -20,7 +20,7 @@ interface IPencil {
 }
 
 /**
- * 便签
+ * 画笔
  */
 class Pencil extends Widget {
   public x: number = 0
@@ -94,7 +94,6 @@ class Pencil extends Widget {
     pencilSprite.endFill()
 
     const bound = this.sprite.getLocalBounds()
-
     this.sprite.x = bound.x + bound.width / 2
     this.sprite.y = bound.y + bound.height / 2
     this.sprite.pivot.x = bound.x + bound.width / 2

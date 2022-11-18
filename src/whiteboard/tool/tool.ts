@@ -116,6 +116,21 @@ class Tool {
 
         break
       }
+
+      // 创建线段
+      case 'line': {
+        this.toolBox = this.whiteboard?.factory?.createBox({
+          type: 'line',
+          widget: {
+            pathPoints: [
+              {x: x, y: y},
+              {x: x, y: y},
+            ],
+          },
+        })
+
+        break
+      }
     }
 
     console.log('this.toolBox', this.toolBox)
@@ -206,6 +221,16 @@ class Tool {
 
         break
       }
+
+      // 绘制线段
+      case 'line': {
+        const pathPoints = JSON.parse(JSON.stringify(this.toolBox.widget.pathPoints))
+        pathPoints[1] = {x: x, y: y}
+
+        this.toolBox?.widget.update({pathPoints})
+
+        break
+      }
     }
   }
 
@@ -214,6 +239,8 @@ class Tool {
       // 如果元素宽高为0,则为单击click事件，将元素销毁
       if (this.toolBox.widget.w === 0 || this.toolBox.widget.h === 0) {
         this.whiteboard?.factory?.destroyBox(this.toolBox.id)
+
+        console.log('88888')
       }
 
       this.toolBox = undefined
