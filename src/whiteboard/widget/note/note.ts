@@ -1,4 +1,4 @@
-import {Container, Graphics} from 'pixi.js'
+import {Container, Graphics, Sprite} from 'pixi.js'
 import Widget from '../widget'
 
 interface INote {
@@ -40,6 +40,8 @@ class Note extends Widget {
 
     this.sprite = new Container()
     this.sprite.addChild(new Graphics())
+    this.sprite.addChild(new Container())
+    this.sprite.children[1].addChild(Sprite.from('http://teamind-static-oss.teamind.co/v2/static/note-shadow.png'))
 
     this.draw()
   }
@@ -47,11 +49,19 @@ class Note extends Widget {
   draw() {
     const {noteColor, w, h, x, y, a} = this
 
+    // 背景框
     const noteBgSprite = this.sprite.children[0]
     noteBgSprite.clear()
     noteBgSprite.beginFill(noteColor)
     noteBgSprite.drawRect(0, 0, w, h)
     noteBgSprite.endFill()
+
+    // 底部阴影
+    const scale = w / 400
+    const shadowSprite = this.sprite.children[1]
+    shadowSprite.scale.set(scale, scale)
+    shadowSprite.x = 0
+    shadowSprite.y = h
 
     this.sprite.angle = a
     this.sprite.x = x
@@ -64,18 +74,20 @@ class Note extends Widget {
     const {dragType, x, y, w, h} = dragOptions
 
     if (dragType === 'scale') {
+      const ratio: number = this.sprite.width / this.sprite.height
       this.sprite.x = x
       this.sprite.y = y
       this.sprite.width = w
-      this.sprite.height = h
+      this.sprite.height = h / ratio
     }
   }
 
   dragEnd() {
+    const ratio: number = this.sprite.width / this.sprite.height
     this.x = this.sprite.x
     this.y = this.sprite.y
     this.w = this.sprite.width
-    this.h = this.sprite.height
+    this.h = this.sprite.height * ratio
 
     this.sprite.scale.set(1, 1)
     this.draw()
