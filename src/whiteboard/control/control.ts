@@ -38,7 +38,7 @@ class Control {
       this.whiteboard?.tool?.pointerdown(x, y)
     } else {
       // 工具栏属性为 pointer 以外的情况时
-      const boxs = this.whiteboard?.boxs
+      const boxs = this.whiteboard?.factory?.boxs
       let selectedBox: any = null
 
       boxs?.forEach((element: Box) => {
@@ -86,7 +86,7 @@ class Control {
 
         if (this.selectBox) {
           const firstPolygon: IPoint[] = this.selectBox.getBoundPoints()
-          const boxs = this.whiteboard?.boxs
+          const boxs = this.whiteboard?.factory?.boxs
           const selectBoxs =
             boxs?.filter((box) => {
               const {x, y, w, h, a} = box.widget
@@ -122,6 +122,14 @@ class Control {
       if (this.selectFlag) {
         this.selectBox?.update({x, y})
       }
+    }
+  }
+
+  pointerclick(x: number, y: number, whitch: number) {
+    // 工具栏是否有选中元素
+    if (this.whiteboard?.tool?.toolType !== 'pointer') {
+      // 由tool模块接管
+      this.whiteboard?.tool?.pointerclick(x, y, whitch)
     }
   }
 

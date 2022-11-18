@@ -16,6 +16,7 @@ class Event {
     this.listenViewportPointerdown() // 按下
     this.listenViewportPointerup() // 按起
     this.listenViewportPointermove() // 平移
+    this.listenViewportClick() // 单击
     this.listenWindowResize() // 窗口拉伸
     this.listenViewportWheel() // 滚轮滚动
   }
@@ -99,8 +100,12 @@ class Event {
    * 指针——点击
    */
   listenViewportClick() {
-    this.viewport?.on('clicked', () => {
-      // console.log('click')
+    this.viewport?.on('clicked', (e: any) => {
+      const whitch = e.event.data.originalEvent.which
+      const worldX = this.whiteboard?.worldX
+      const worldY = this.whiteboard?.worldY
+
+      this.whiteboard?.control?.pointerclick(worldX, worldY, whitch)
     })
   }
 

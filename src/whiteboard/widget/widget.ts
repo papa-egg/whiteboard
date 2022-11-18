@@ -6,6 +6,12 @@ class Widget {
 
   constructor() {}
 
+  update(options: any) {
+    Object.assign(this, options)
+
+    this.draw()
+  }
+
   move(dx: number, dy: number) {
     this.sprite.x = this.x + dx
     this.sprite.y = this.y + dy
@@ -29,6 +35,9 @@ class Widget {
     this.y = this.sprite.y
     this.a = this.sprite.angle
   }
+
+  // NOTE: 占位
+  draw() {}
 }
 
 export default Widget
